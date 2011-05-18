@@ -11,11 +11,11 @@ $:.unshift(File.dirname(self_file) + "/../lib")
 
 require 'bundler/setup'
 require 'shikoku'
-require 'pp'
 
-repos = Shikoku::Repository.new_from_remote "git://github.com/hitode909/kindairb.git"
-
-repos.entries.each{ |f|
-  p f.path
-  f.save_tokens
+Shikoku::Repository.all.each{ |repos|
+  p repos.entries.map(&:mime_type).uniq.sort
+  repos.entries.each{ |entry|
+    p [entry.path, entry.mime_type]
+    entry.save_tokens
+  }
 }

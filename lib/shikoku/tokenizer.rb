@@ -6,17 +6,18 @@ require 'ripper'
 module Shikoku
   class Tokenizer
     attr_reader :path
-    def initialize(path, filetype)
+    def initialize(path, mime_type)
       @path = path
-      @filetype = filetype
+      @mime_type = mime_type
     end
 
-    def self.new_from_path_and_filetype(path, filetype)
-      class_for_filetype(filetype).new(path, filetype)
+    def self.new_from_path_and_mime_type(path, mime_type)
+      class_for_mime_type(mime_type).new(path, mime_type)
     end
 
-    def self.class_for_filetype(filetype)
-      CLASSES[filetype] || Basic
+    def self.class_for_mime_type(mime_type)
+      return Null if mime_type =~ /^image/
+      CLASSES[mime_type] || Basic
     end
 
     # --- common methods ---
@@ -32,14 +33,20 @@ module Shikoku
       end
     end
 
-    class Ruby < self
+    class Null < self
+      def tokenize
+        []
+      end
+    end
+
+    class ApplicationRuby < self
       def tokenize
         Ripper.tokenize(content, path)
       end
     end
 
     CLASSES = {
-      :ruby => Ruby
+      "application/ruby" => ApplicationRuby
     }
 
   end

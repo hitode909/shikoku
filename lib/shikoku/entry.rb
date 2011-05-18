@@ -18,17 +18,6 @@ module Shikoku
       open(full_path).read
     end
 
-    FILETYPES = {
-      /\.rb$/ => :ruby,
-    }
-
-    def filetype
-      key = FILETYPES.keys.find{|rule|
-        rule =~ path
-      }
-      FILETYPES[key] || :plain_text
-    end
-
     # DBから引いてくる
     def tokens
       []
@@ -36,7 +25,7 @@ module Shikoku
 
     # 計算
     def create_tokens
-      t = Shikoku::Tokenizer.new_from_path_and_filetype(full_path, filetype)
+      t = Shikoku::Tokenizer.new_from_path_and_mime_type(full_path, mime_type)
       t.tokenize
     end
 
