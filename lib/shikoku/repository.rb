@@ -51,7 +51,9 @@ module Shikoku
     end
 
     def files
-      grit.git.native(:ls_files).split(/\n/)
+      grit.git.native(:ls_files).split(/\n/).map{ |path|
+        File.join local_path, path
+      }
     end
 
     protected

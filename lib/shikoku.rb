@@ -8,5 +8,6 @@ module Shikoku
   require 'shikoku/utility'
   require 'shikoku/github_crawler'
   require 'shikoku/repository'
+  require 'shikoku/tokenizer'
 #  require 'shikoku/parser'
 end
