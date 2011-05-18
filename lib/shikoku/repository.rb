@@ -33,6 +33,10 @@ module Shikoku
       self.new :local_path => local_path
     end
 
+    def self.all
+      Dir.glob(File.join(ROOT, '*')).map{ |path| self.new_from_local path }
+    end
+
     # 最新状態に更新する
     def setup
       if has_local?
