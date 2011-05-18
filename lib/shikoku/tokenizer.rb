@@ -6,19 +6,17 @@ require 'ripper'
 module Shikoku
   class Tokenizer
     attr_reader :path
-    def initialize(path)
+    def initialize(path, filetype)
       @path = path
+      @filetype = filetype
     end
 
-    def self.new_from_path(path)
-      class_for_filename(path).new(path)
+    def self.new_from_path_and_filetype(path, filetype)
+      class_for_filetype(filetype).new(path, filetype)
     end
 
-    def self.class_for_filename(filename)
-      key = FILETYPES.keys.find{|rule|
-        rule =~ filename
-      }
-      FILETYPES[key] || Basic
+    def self.class_for_filetype(filetype)
+      CLASSES[filetype] || Basic
     end
 
     # --- common methods ---
@@ -40,11 +38,9 @@ module Shikoku
       end
     end
 
-    FILETYPES = {
-      /\.rb$/ => Ruby
+    CLASSES = {
+      :ruby => Ruby
     }
-    # TODO: java, javascriptくらいは取れそう
-    # TODO: ファイルタイプはファイルクラスが持つべき
 
   end
 end
