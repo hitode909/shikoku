@@ -50,9 +50,10 @@ module Shikoku
       @grit ||= Grit::Repo.init(local_path)
     end
 
-    def files
+    # XXX: fileのことだけど，Fileクラス作ると組込みのFileクラスと名前が被る
+    def entries
       grit.git.native(:ls_files).split(/\n/).map{ |path|
-        File.join local_path, path
+        Shikoku::Entry.new(self, path)
       }
     end
 
