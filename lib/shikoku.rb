@@ -10,5 +10,6 @@ module Shikoku
   require 'shikoku/repository'
   require 'shikoku/tokenizer'
   require 'shikoku/entry'
+  require 'shikoku/database'
 #  require 'shikoku/parser'
 end

@@ -46,8 +46,8 @@ module Shikoku
       end
     end
 
-    def grit
-      @grit ||= Grit::Repo.init(local_path)
+    def tree(*args)
+      grit.tree(*args)
     end
 
     # XXX: fileのことだけど，Fileクラス作ると組込みのFileクラスと名前が被る
@@ -58,6 +58,10 @@ module Shikoku
     end
 
     protected
+
+    def grit
+      @grit ||= Grit::Repo.init(local_path)
+    end
 
     # remote urlからlocal path 作る，fallbackあり
     def extract_local_path(url)

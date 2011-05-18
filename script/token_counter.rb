@@ -16,5 +16,6 @@ require 'pp'
 repos = Shikoku::Repository.new_from_remote "git://github.com/hitode909/kindairb.git"
 
 repos.entries.each{ |f|
-  f.tokenize
+  p f.path
+  f.save_tokens
 }

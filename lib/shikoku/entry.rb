@@ -35,14 +35,55 @@ module Shikoku
     end
 
     # 計算
-    def tokenize
+    def create_tokens
       t = Shikoku::Tokenizer.new_from_path_and_filetype(full_path, filetype)
       t.tokenize
     end
 
     # 計算 + DBに保存
-    def tokenize_and_record
-      puts "save"
+    def save_tokens
+      return if has_records?
+      Shikoku::Database.token.insert(tokens_to_records(create_tokens))
+    end
+
+    def has_records?
+      !! Shikoku::Database.token.find_one(as_key)
+    end
+
+    # tokenのデータ構造ちゃんと決まってない，クラスにしたほうがよいかもしれない
+
+    def tokens_to_records(tokens)
+      tokens.each_with_index.map{|v, i|
+        as_key.merge({
+            :value => v,
+            :index => i
+          })
+      }
+    end
+
+    def as_key
+      @as_key ||= {
+        :url   => repository.remote_url,
+        :path  => path,
+        :mtime => mtime,
+        :mime_type => mime_type
+      }
+    end
+
+    # これではチェックアウト時間に依るのでだめ
+    # git logから取ってくるべき
+    # あまりgitに依存するのもよくないのでこれで良い？
+    # もしくは，コミットのsha1を使うとか
+    def mtime
+      File.mtime full_path
+    end
+
+    def blob
+      repository.tree/path
+    end
+
+    def mime_type
+      blob.mime_type
     end
   end
 end
