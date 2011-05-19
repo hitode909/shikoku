@@ -16,8 +16,7 @@ module Shikoku
     end
 
     def self.class_for_mime_type(mime_type)
-      return Null if mime_type =~ /^image/
-      CLASSES[mime_type] || Basic
+      CLASSES[mime_type] || Null
     end
 
     # --- common methods ---
