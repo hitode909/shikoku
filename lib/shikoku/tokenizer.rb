@@ -5,14 +5,21 @@ require 'ripper'
 
 module Shikoku
   class Tokenizer
-    attr_reader :path
-    def initialize(path, mime_type)
-      @path = path
-      @mime_type = mime_type
-    end
+    attr_accessor :path, :content, :mime_type
 
     def self.new_from_path_and_mime_type(path, mime_type)
-      class_for_mime_type(mime_type).new(path, mime_type)
+      class_for_mime_type(mime_type).new.tap{ |this|
+        me.path = path
+        me.mime_type = mime_type
+      }
+    end
+
+    def self.new_from_content_and_mime_type(content, mime_type)
+      class_for_mime_type(mime_type).new.tap{ |this|
+        me.content = content
+        me.mime_type = mime_type
+        me.path = 'dummy'
+      }
     end
 
     def self.class_for_mime_type(mime_type)
