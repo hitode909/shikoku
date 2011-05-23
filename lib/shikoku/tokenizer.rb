@@ -8,14 +8,14 @@ module Shikoku
     attr_accessor :path, :content, :mime_type
 
     def self.new_from_path_and_mime_type(path, mime_type)
-      class_for_mime_type(mime_type).new.tap{ |this|
+      class_for_mime_type(mime_type).new.tap{ |me|
         me.path = path
         me.mime_type = mime_type
       }
     end
 
     def self.new_from_content_and_mime_type(content, mime_type)
-      class_for_mime_type(mime_type).new.tap{ |this|
+      class_for_mime_type(mime_type).new.tap{ |me|
         me.content = content
         me.mime_type = mime_type
         me.path = 'dummy'
