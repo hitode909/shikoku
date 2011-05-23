@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 require 'mongo'
+require 'logger'
 
 module Shikoku
   class Database
     class << self
       def database
-        @collection ||= Mongo::Connection.new('localhost', 27017, :pool_size => 5, :timeout => 5).db("shikoku")
+        # logger = Logger.new($stdout)
+        # logger.level = Logger::DEBUG
+        # , :logger => logger
+        @collection ||= Mongo::Connection.new('localhost', 27017).db("shikoku")
       end
 
-      def token
-        database.collection('token')
+      def collection(mime_type)
+        database.collection(mime_type)
       end
     end
   end

@@ -15,7 +15,7 @@ module Shikoku
     end
 
     def content
-      open(full_path).read
+      blob.data.encode('utf-8')
     end
 
     # DBから引いてくる
@@ -25,18 +25,27 @@ module Shikoku
 
     # 計算
     def create_tokens
-      t = Shikoku::Tokenizer.new_from_path_and_mime_type(full_path, mime_type)
-      t.tokenize
+      tokenizer.tokenize
+    end
+
+    def tokenizer
+      @tokenizer ||= Shikoku::Tokenizer.new_from_path_and_mime_type(full_path, mime_type)
+    end
+
+    def db
+      Shikoku::Database.collection(mime_type)
     end
 
     # 計算 + DBに保存
     def save_tokens
       return if has_records?
-      Shikoku::Database.token.insert(tokens_to_records(create_tokens))
+      db.insert(tokens_to_records(create_tokens))
+      db.ensure_index([['value', Mongo::ASCENDING]])
+      db.ensure_index([['url', Mongo::ASCENDING], ['path', Mongo::ASCENDING], ['mtime', Mongo::ASCENDING]])
     end
 
     def has_records?
-      !! Shikoku::Database.token.find_one(as_key)
+      !! db.find_one(as_key)
     end
 
     # tokenのデータ構造ちゃんと決まってない，クラスにしたほうがよいかもしれない
@@ -50,6 +59,8 @@ module Shikoku
       }
     end
 
+    # db.token.ensureIndex({url: 1, path: 1, mtime: 1})
+    # db.token.ensureIndex({value: 1})
     def as_key
       @as_key ||= {
         :url   => repository.remote_url,
@@ -64,7 +75,7 @@ module Shikoku
     # あまりgitに依存するのもよくないのでこれで良い？
     # もしくは，コミットのsha1を使うとか
     def mtime
-      File.mtime full_path
+      @mtime ||= File.mtime full_path
     end
 
     def blob
@@ -72,7 +83,13 @@ module Shikoku
     end
 
     def mime_type
-      blob.mime_type
+      return @mime_type if @mime_type
+      # XXX
+      if blob.kind_of? Grit::Submodule
+        @mime_type = "git/submodule"
+      else
+        @mime_type = blob.mime_type
+      end
     end
   end
 end

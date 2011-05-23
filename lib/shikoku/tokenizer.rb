@@ -40,7 +40,10 @@ module Shikoku
 
     class ApplicationRuby < self
       def tokenize
-        Ripper.tokenize(content, path)
+        Ripper.tokenize(content, path).select{ |s|
+          # 空白だけのトークンは無視，色付けに使うため
+          s =~ /\S/
+        }
       end
     end
 

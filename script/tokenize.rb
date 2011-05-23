@@ -13,9 +13,14 @@ require 'bundler/setup'
 require 'shikoku'
 
 Shikoku::Repository.all.each{ |repos|
-  p repos.entries.map(&:mime_type).uniq.sort
   repos.entries.each{ |entry|
-    p [entry.path, entry.mime_type]
-    entry.save_tokens
+    begin
+      next if entry.kind_of? Grit::Submodule
+      next if entry.tokenizer.kind_of? Shikoku::Tokenizer::Null
+      p [repos.local_path, entry.path, entry.mime_type]
+      entry.save_tokens
+    rescue => error
+      p [error, error.message]
+    end
   }
 }
