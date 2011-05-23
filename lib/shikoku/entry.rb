@@ -40,6 +40,9 @@ module Shikoku
     def save_tokens
       return if has_records?
       db.insert(tokens_to_records(create_tokens))
+    end
+
+    def create_index
       db.ensure_index([['value', Mongo::ASCENDING]])
       db.ensure_index([['url', Mongo::ASCENDING], ['path', Mongo::ASCENDING], ['mtime', Mongo::ASCENDING]])
     end
