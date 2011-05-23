@@ -17,7 +17,17 @@ Shikoku::GithubCrawler.each{ |git_url|
   repos = Shikoku::Repository.new_from_remote git_url
   begin
     repos.setup
-    rescue => error
+    repos.entries.each{ |entry|
+      begin
+        next if entry.kind_of? Grit::Submodule
+        next if entry.tokenizer.kind_of? Shikoku::Tokenizer::Null
+        p [repos.local_path, entry.path, entry.mime_type]
+        entry.save_tokens
+      rescue => error
+        p [error, error.message]
+      end
+    }
+  rescue => error
     p error
   end
 }

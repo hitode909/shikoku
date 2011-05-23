@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+require 'json'
 class ShikokuApp < Sinatra::Base
 
 
@@ -23,12 +23,24 @@ class ShikokuApp < Sinatra::Base
 
   post '/' do
     body = params[:body]
+    halt 400 unless body
     mime_type = params[:mime_type] || 'application/ruby'
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'x-requested-with'
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
-    tokenizer.tokenize.join("\n")
+    tokens = tokenizer.tokenize
+    total = collection.find.count
+    content_type :json
+
+    res = { }
+    tokens.uniq.each{ |token|
+      p token
+      res[token] = 100.0 * collection.find({
+          'value' => token
+        }).count / total
+    }
+    JSON.unparse(res)
   end
 
   options '/' do
@@ -37,7 +49,3 @@ class ShikokuApp < Sinatra::Base
     'options'
   end
 end
-
-
-  __END__
-  @@index
