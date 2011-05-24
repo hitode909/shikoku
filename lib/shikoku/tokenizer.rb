@@ -31,26 +31,27 @@ module Shikoku
       @content ||= open(path).read
     end
 
+    def tokenize
+      []
+    end
+
     # --- tokenizers ---
 
     class Basic < self
       def tokenize
-        content.split(/\s+/m)
+        content.split(/(\s+)/m)
       end
     end
 
     class Null < self
       def tokenize
-        []
+        super
       end
     end
 
     class ApplicationRuby < self
       def tokenize
-        Ripper.tokenize(content, path).select{ |s|
-          # 空白だけのトークンは無視，色付けに使うため
-          s =~ /\S/
-        }
+        Ripper.tokenize(content, path)
       end
     end
 

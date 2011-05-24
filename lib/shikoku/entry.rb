@@ -28,6 +28,13 @@ module Shikoku
       tokenizer.tokenize
     end
 
+    # 空白だけのトークンはDBに入れない
+    def create_tokens_for_save
+      create_tokens.select{ |s|
+        s =~ /\S/
+      }
+    end
+
     def tokenizer
       @tokenizer ||= Shikoku::Tokenizer.new_from_path_and_mime_type(full_path, mime_type)
     end
@@ -39,7 +46,7 @@ module Shikoku
     # 計算 + DBに保存
     def save_tokens
       return if has_records?
-      db.insert(tokens_to_records(create_tokens))
+      db.insert(tokens_to_records(create_tokens_for_save))
     end
 
     def create_index

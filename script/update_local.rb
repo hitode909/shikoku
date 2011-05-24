@@ -14,5 +14,9 @@ require 'shikoku'
 
 Shikoku::Repository.all.each{ |repos|
   puts repos.remote_url
-  repos.setup
+  begin
+    repos.setup
+  rescue => error
+    warn error
+  end
 }
