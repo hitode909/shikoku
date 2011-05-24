@@ -7,7 +7,8 @@ $ ->
       mime_type: 'application/ruby'
       (res) ->
         $('dl').empty()
-        for token, rate of res
-          $('dl').append $('<dt>').text token
+        for pair in res
+          [token, rate] = pair
+          $('dl').append $('<dt>').text "'#{ token }'"
           $('dl').append $('<dd>').text rate
     false
