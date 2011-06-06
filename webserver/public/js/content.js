@@ -1,25 +1,32 @@
-var highlight;
-highlight = function(tokens) {
-  var fragment, max;
+var get_color, highlight;
+get_color = function(level) {
+  var h, l;
+  h = 300 - level * 300.0;
+  l = level < 0.1 ? level / 0.1 * 50 : 50;
+  return "hsl(" + h + ", 100%, " + l + "%)";
+};
+highlight = function(res) {
+  var fragment, max, total;
   fragment = document.createDocumentFragment();
-  max = 0.0;
-  $.each(tokens, function(i, pair) {
-    var rate, token;
-    token = pair[0], rate = pair[1];
-    if (max < +rate) {
-      return max = +rate;
+  total = res.total;
+  max = 0;
+  $.each(res.tokens, function(i, data) {
+    var count, rate, value;
+    value = data.value, count = data.count, rate = data.rate;
+    if (max < count) {
+      return max = count;
     }
   });
-  $.each(tokens, function(i, pair) {
-    var color, level, node, rate, token;
-    token = pair[0], rate = pair[1];
-    level = rate / max * 100;
+  $.each(res.tokens, function(i, data) {
+    var color, count, level, node, rate, title, value;
+    value = data.value, count = data.count, rate = data.rate;
+    level = Math.log(count) / Math.log(max);
     if (isNaN(level) || level === Infinity) {
       level = 0;
     }
-    color = "hsl(180, " + level + "%, 50%)";
-    console.log(color);
-    node = $('<span>').text(token).css({
+    color = get_color(level);
+    title = value.match(/\S/) ? count : '';
+    node = $('<span>').addClass('token').text(value).attr('title', title).css({
       color: color
     });
     return fragment.appendChild(node[0]);
@@ -27,7 +34,8 @@ highlight = function(tokens) {
   return $('#result').empty().append(fragment);
 };
 $(function() {
-  return $('form').submit(function(event) {
+  var i, _results;
+  $('form').submit(function(event) {
     var body;
     body = $(this).find('textarea').val();
     event.preventDefault();
@@ -39,4 +47,14 @@ $(function() {
     });
     return false;
   });
+  _results = [];
+  for (i = 0; i <= 600; i++) {
+    _results.push($('#color-sample').append($('<span>').css({
+      display: 'inline-block',
+      width: '1px',
+      height: '30px',
+      background: get_color(i / 600)
+    })));
+  }
+  return _results;
 });

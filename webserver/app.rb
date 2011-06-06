@@ -42,15 +42,19 @@ class ShikokuApp < Sinatra::Base
     total = get_total
     content_type :json
 
-   cache ||= { }
-    res = []
+    count_cache ||= { }
+    res = { :total => total, :tokens => []}
     tokens.each{ |token|
-      unless cache.has_key? token
-        cache[token] = 100.0 * get_count(token) / total
+      unless count_cache.has_key? token
+        count_cache[token] = get_count(token)
       end
-      rate = cache[token]
-      p [token, rate]
-      res << [token, rate]
+      count = count_cache[token]
+      p [token, count]
+      res[:tokens] << {
+        :value => token,
+        :count => count,
+        :rate => count.to_f / total,
+      }
     }
     JSON.unparse(res)
   end
