@@ -1,9 +1,16 @@
-var get_color, highlight;
+var fill_pattern, get_color, highlight, last_res, preview_color;
+fill_pattern = 'color';
+last_res = null;
 get_color = function(level) {
   var h, l;
-  h = 300 - level * 300.0;
-  l = level < 0.1 ? level / 0.1 * 50 : 50;
-  return "hsl(" + h + ", 100%, " + l + "%)";
+  if (fill_pattern === 'color') {
+    level = 1.0 - level;
+    h = 300 - level * 300.0;
+    l = level < 0.1 ? level / 0.1 * 50 : 50;
+    return "hsl(" + h + ", 100%, " + l + "%)";
+  } else {
+    return "hsl(0, 0%, " + (level * 90) + "%)";
+  }
 };
 highlight = function(res) {
   var fragment, max, total;
@@ -21,7 +28,7 @@ highlight = function(res) {
     var color, count, level, node, rate, title, value;
     value = data.value, count = data.count, rate = data.rate;
     level = Math.log(count) / Math.log(max);
-    if (isNaN(level) || level === Infinity) {
+    if (isNaN(level) || level === Infinity || level === -Infinity) {
       level = 0;
     }
     color = get_color(level);
@@ -33,20 +40,9 @@ highlight = function(res) {
   });
   return $('#result').empty().append(fragment);
 };
-$(function() {
+preview_color = function() {
   var i, _results;
-  $('form').submit(function(event) {
-    var body;
-    body = $(this).find('textarea').val();
-    event.preventDefault();
-    $.post('/', {
-      body: body,
-      mime_type: 'application/ruby'
-    }, function(res) {
-      return highlight(res);
-    });
-    return false;
-  });
+  $('#color-sample').empty();
   _results = [];
   for (i = 0; i <= 600; i++) {
     _results.push($('#color-sample').append($('<span>').css({
@@ -57,4 +53,30 @@ $(function() {
     })));
   }
   return _results;
+};
+$(function() {
+  var last;
+  last = '';
+  setInterval(function() {
+    var body;
+    body = $('form').find('textarea').val();
+    if (last === body) {
+      return;
+    }
+    last = body;
+    $.post('/', {
+      body: body,
+      mime_type: 'application/ruby'
+    }, function(res) {
+      last_res = res;
+      return highlight(res);
+    });
+    return false;
+  }, 1000);
+  $('input[name="fill-type"]').change(function() {
+    fill_pattern = $(this).val();
+    preview_color();
+    return highlight(last_res);
+  });
+  return preview_color();
 });

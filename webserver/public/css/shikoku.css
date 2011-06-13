@@ -1,0 +1,12 @@
+#color-sample {
+    padding: 5px;
+}
+
+.tokens {
+    min-height: 8em;
+    padding: 1em;
+}
+
+.tokens .token:hover {
+    background: #ffc;
+}

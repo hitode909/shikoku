@@ -1,7 +1,14 @@
+fill_pattern = 'color'
+last_res = null
+
 get_color = (level) ->
-  h =  300 - level * 300.0
-  l = if level < 0.1 then level / 0.1 * 50 else 50
-  "hsl(#{ h }, 100%, #{ l }%)"
+  if fill_pattern == 'color'
+    level = 1.0 - level
+    h =  300 - level * 300.0
+    l = if level < 0.1 then level / 0.1 * 50 else 50
+    "hsl(#{ h }, 100%, #{ l }%)"
+  else
+    "hsl(0, 0%, #{ level * 90 }%)"
 
 highlight = (res) ->
   fragment = document.createDocumentFragment()
@@ -16,7 +23,7 @@ highlight = (res) ->
     {value, count, rate} = data
 
     level = Math.log(count) / Math.log(max)
-    level = 0 if isNaN(level) or level == Infinity
+    level = 0 if isNaN(level) or level == Infinity or level == -Infinity
     color = get_color(level)
     title = if value.match(/\S/) then count else ''
     node = $('<span>').addClass('token').text(value).attr('title', title).css
@@ -24,16 +31,36 @@ highlight = (res) ->
     fragment.appendChild(node[0])
   $('#result').empty().append(fragment)
 
+preview_color = ->
+  $('#color-sample').empty()
+  for i in [0..600]
+    $('#color-sample').append $('<span>').css
+      display: 'inline-block'
+      width: '1px'
+      height: '30px'
+      background: get_color(i / 600)
+
+
 $ ->
-  $('form').submit (event) ->
-    body = $(this).find('textarea').val()
-    event.preventDefault();
+  last = ''
+  setInterval ->
+    body = $('form').find('textarea').val()
+    if last == body
+      return
+    last = body
+    # event.preventDefault();
     $.post '/'
       body: body
       mime_type: 'application/ruby'
       (res) ->
+        last_res = res
         highlight(res)
     false
+  , 1000
 
-  for i in [0..600]
-    $('#color-sample').append $('<span>').css(display: 'inline-block', width: '1px', height: '30px', background: get_color(i / 600))
+  $('input[name="fill-type"]').change ->
+    fill_pattern = $(this).val()
+    preview_color()
+    highlight(last_res)
+
+  preview_color()
