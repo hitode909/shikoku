@@ -55,8 +55,15 @@ module Shikoku
       end
     end
 
+    class ApplicationPerl < self
+      def tokenize
+        `echo  "#{content}" | perl -MPPI -l -e '$s=join(q{}, <STDIN>); for (@{PPI::Document->new(\\$s)->find(q{PPI::Token})}) { print $_ }'`.split(/\n+/)
+      end
+    end
+
     CLASSES = {
-      "application/ruby" => ApplicationRuby
+      "application/ruby" => ApplicationRuby,
+      "application/perl" => ApplicationPerl
     }
 
   end
