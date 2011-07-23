@@ -15,6 +15,10 @@ get_color = (level) ->
   else
     "hsl(0, 0%, #{ level * 90 }%)"
 
+create_token = (def) ->
+  $('<span>').addClass('token').text(def.value).attr('title', "#{ def.count } (#{ def.rate * 100 })", "data-rate", def.rate).css
+      color: get_color(def.rate)
+
 highlight = (res) ->
   fragment = document.createDocumentFragment()
   total = res.total
@@ -25,28 +29,26 @@ highlight = (res) ->
   #   max = count if max < count
 
   $.each res.tokens, (i, data) ->
-    {value, count, rate} = data
+    # {value, count, rate} = data
 
-    level = rate * 10
-    level = Math.log(rate+1) / Math.log(max+1)
-    level = rate / max
-    level = rate
-    level = 0 if isNaN(level) or level == Infinity or level == -Infinity
-    color = get_color(level)
-    title = if value.match(/\S/) then count else ''
-    node = $('<span>').addClass('token').text(value).attr('title', "#{ title } (#{ rate * 100 })").css
-      color: color
+    # level = rate * 10
+    # level = Math.log(rate+1) / Math.log(max+1)
+    # level = rate / max
+    # level = rate
+    # level = 0 if isNaN(level) or level == Infinity or level == -Infinity
+    # color = get_color(rate)
+    node = create_token(data)
     fragment.appendChild(node[0])
   $('#result').empty().append(fragment)
 
 preview_color = ->
   $('#color-sample').empty()
-  for i in [0..600]
-    $('#color-sample').append $('<span>').css
+  for i in [0..500]
+    $('#color-sample').append $('<span>').attr('data-rate-index', i).css
       display: 'inline-block'
       width: '1px'
       height: '30px'
-      background: get_color(i / 600)
+      background: get_color(i / 500)
 
 
 $ ->
@@ -56,14 +58,12 @@ $ ->
     if last == body
       return
     last = body
-    # event.preventDefault();
     $.post '/'
       body: body
       mime_type: 'application/ruby'
       (res) ->
         last_res = res
         highlight(res)
-    false
   , 1000
 
   $('input[name="fill-type"]').change ->
@@ -72,3 +72,31 @@ $ ->
     highlight(last_res)
 
   preview_color()
+
+  selected_token = null
+
+  completions_container = $('#completions-container')
+
+  $('.token').live 'click', (event) ->
+    if selected_token && $(event.target).parents('#completions-container').length > 0
+      selected_token.replaceWith($(this))
+      selected_token = null
+      completions_container.hide()
+      return true
+
+    selected_token = $(this)
+    completions_container.empty().show()
+    completions_container.css
+      left: $(this).position().left + 20
+      top: $(this).position().top + 20
+    loading = $('<div>').text('...').css('class', 'loading')
+    completions_container.append($('<strong>').append($(this).clone(true))).append($('<hr>')).append(loading)
+    $.get '/suggest', {token: $(this).text() }, (res) ->
+      loading.remove()
+      for item in res
+        completions_container.append $('<div>').append(create_token(item))
+
+  $('body').click (event) ->
+    unless $(event.target).parents('#completions-container').length
+      completions_container.hide()
+      selected_token = null

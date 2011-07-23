@@ -1,4 +1,7 @@
 #color-sample {
+    /* position: fixed; */
+    /* right: 5px; */
+    /* top: 5px; */
     padding: 5px;
 }
 
@@ -7,6 +10,20 @@
     padding: 1em;
 }
 
-.tokens .token:hover {
+.token:hover {
     background: #ffc;
+    cursor: pointer;
+}
+
+#completions-container {
+    display: none;
+    position: absolute;
+    border: 1px solid gray;
+    background: white;
+    padding: 1em;
+}
+
+#completions-container .token {
+    display: inline-block;
+    cursor: pointer;
 }

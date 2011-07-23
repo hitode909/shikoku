@@ -23,11 +23,39 @@ class ShikokuApp < Sinatra::Base
     def get_file_total
       Shikoku::Database.collection('application/ruby/files').count
     end
-end
 
+    # simple...
+    def get_near_tokens(token)
+      res = []
+      (1...token.length).to_a.reverse.each{|to|
+        rule = Regexp.new('^' + Regexp.quote(token[0..to]))
+        p [rule, res.length]
+        list = Shikoku::Database.collection('application/ruby/file_summary').find({ 'value' => rule}, { :limit => 50}).to_a.sort_by{ |_| _['value'].length }
+        res.concat(list).uniq!
+        p [rule, res.length]
+        break if res.length >= 10
+      }
+      res[0..10]
+    end
+end
 
   get '/' do
     erb :index
+  end
+
+  get '/suggest' do
+    token = params[:token]
+    halt 400 unless token
+    content_type :json
+    total = get_file_total
+    res = get_near_tokens(token).map{ |entry|
+      {
+        :value => entry['value'],
+        :count => entry['count'],
+        :rate => entry['count'].to_f / total
+      }
+    }
+    JSON.unparse(res)
   end
 
   post '/' do
