@@ -10,7 +10,7 @@ get_color = (level) ->
     # factor = 0.9
     # l = if level < 0.1 then 50 else 0
     # l = if rlevel < factor then rlevel / factor * 50 else 50
-    l = rlevel * 50
+    l = (1-level*level) * 50
     "hsl(#{ h }, 100%, #{ l }%)"
   else
     "hsl(0, 0%, #{ level * 90 }%)"
@@ -30,6 +30,7 @@ highlight = (res) ->
     level = rate * 10
     level = Math.log(rate+1) / Math.log(max+1)
     level = rate / max
+    level = rate
     level = 0 if isNaN(level) or level == Infinity or level == -Infinity
     color = get_color(level)
     title = if value.match(/\S/) then count else ''

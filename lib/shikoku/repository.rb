@@ -33,6 +33,10 @@ module Shikoku
       self.new :local_path => local_path
     end
 
+    def self.all_path
+      Dir.glob(File.join(ROOT, '*'))
+    end
+
     def self.all
       Dir.glob(File.join(ROOT, '*')).map{ |path| self.new_from_local path }
     end

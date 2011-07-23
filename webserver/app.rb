@@ -4,30 +4,30 @@ class ShikokuApp < Sinatra::Base
 
   helpers do
 
-    def get_count(token)
-      summary = Shikoku::Database.collection('application/ruby/summary').find_one({ 'value' => token})
-      summary ? summary['count'] : 0
+    def get_token_count(token)
+      Shikoku::Database.collection('application/ruby/count_summary').find_one({ 'value' => token})['count']
+    rescue
+      0
     end
 
-    def get_total
-      @total || Shikoku::Database.collection('application/ruby').count
+    def get_token_total
+      Shikoku::Database.collection('application/ruby').count
     end
-  end
+
+    def get_file_count(token)
+      Shikoku::Database.collection('application/ruby/file_summary').find_one({ 'value' => token})['count']
+    rescue
+      0
+    end
+
+    def get_file_total
+      Shikoku::Database.collection('application/ruby/files').count
+    end
+end
 
 
   get '/' do
     erb :index
-  end
-
-  get '/:token' do
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'x-requested-with'
-    token = params[:token]
-    found = get_count(token)
-    total = get_total
-
-    p [token, found, total]
-    (100.0 * found / total).to_s
   end
 
   post '/' do
@@ -39,14 +39,14 @@ class ShikokuApp < Sinatra::Base
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
     tokens = tokenizer.tokenize
-    total = get_total
+    total = get_file_total
     content_type :json
 
     count_cache ||= { }
     res = { :total => total, :tokens => []}
     tokens.each{ |token|
       unless count_cache.has_key? token
-        count_cache[token] = get_count(token)
+        count_cache[token] = get_file_count(token)
       end
       count = count_cache[token]
       p [token, count]

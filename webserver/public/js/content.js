@@ -12,7 +12,7 @@ get_color = function(level) {
   if (fill_pattern === 'color') {
     rlevel = 1.0 - level;
     h = level > 0.0 ? 90 + rlevel * 180.0 : 0.0;
-    l = rlevel * 50;
+    l = (1 - level * level) * 50;
     return "hsl(" + h + ", 100%, " + l + "%)";
   } else {
     return "hsl(0, 0%, " + (level * 90) + "%)";
@@ -29,6 +29,7 @@ highlight = function(res) {
     level = rate * 10;
     level = Math.log(rate + 1) / Math.log(max + 1);
     level = rate / max;
+    level = rate;
     if (isNaN(level) || level === Infinity || level === -Infinity) {
       level = 0;
     }
