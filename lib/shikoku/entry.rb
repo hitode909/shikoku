@@ -59,14 +59,14 @@ module Shikoku
     def save_tokens
       return if has_records?
       list = create_tokens_for_save
-      db.insert(tokens_to_records(list))
+      # db.insert(tokens_to_records(list))
       list.each{ |v|
         count_summary_db.update({ :value => v}, { :$inc => { :count => 1}}, {:upsert => true})
       }
       list.uniq.each{ |v|
         file_summary_db.update({ :value => v}, { :$inc => { :count => 1}}, {:upsert => true})
       }
-      files_db.insert({ :path => self.path, :url => self.repository.remote_url})
+      files_db.insert(as_key)
     end
 
     def create_index
@@ -77,7 +77,7 @@ module Shikoku
     end
 
     def has_records?
-      !! db.find_one(as_key)
+      !! files_db.find_one(as_key)
     end
 
     # tokenのデータ構造ちゃんと決まってない，クラスにしたほうがよいかもしれない
