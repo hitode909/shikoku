@@ -5,6 +5,12 @@
     padding: 5px;
 }
 
+#color-sample span {
+    display: inline-block;
+    width: 1px;
+    height: 30px;
+}
+
 .tokens {
     min-height: 8em;
     padding: 1em;
