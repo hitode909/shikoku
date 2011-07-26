@@ -74,7 +74,11 @@ end
     res = { :total => total, :tokens => []}
     tokens.each{ |token|
       unless count_cache.has_key? token
-        count_cache[token] = get_file_count(token)
+        if token =~ /\S/
+          count_cache[token] = get_file_count(token)
+        else
+          count_cache[token] = 0
+        end
       end
       count = count_cache[token]
       p [token, count]
