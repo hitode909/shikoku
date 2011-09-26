@@ -40,6 +40,9 @@ class ShikokuApp < Sinatra::Base
 end
 
   get '/' do
+    @tokens_count = Shikoku::Database.collection('application/ruby').count
+    @files_count  = Shikoku::Database.collection('application/ruby/files').count
+
     erb :index
   end
 
