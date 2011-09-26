@@ -58,6 +58,8 @@ class ShikokuApp < Sinatra::Base
           "$or" => tokens.select{ |s| s =~ /\S/ }.map{ |token|
             { 'value' => token}
           }
+        }, {
+          :fields => [:url, :path, :value]
         })
       entries.each{ |entry|
         value = entry['value']
