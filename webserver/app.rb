@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'json'
+require 'set'
+
 class ShikokuApp < Sinatra::Base
 
   helpers do
@@ -8,6 +10,10 @@ class ShikokuApp < Sinatra::Base
       Shikoku::Database.collection('application/ruby/count_summary').find_one({ 'value' => token})['count']
     rescue
       0
+    end
+
+    def token_collection
+      Shikoku::Database.collection('application/ruby')
     end
 
     def get_token_total
@@ -36,6 +42,18 @@ class ShikokuApp < Sinatra::Base
         break if res.length >= 10
       }
       res[0..10]
+    end
+
+    def get_file_set(token)
+      entries = token_collection.find({'value' => token})
+      entries.inject(Set.new){ |set, token|
+        set << [token['url'], token['path']].join('-')
+      }
+    end
+
+    def get_co_rate(set_a, set_b)
+      return 0 if set_a.length == 0 || set_b.length == 0
+      (set_a & set_b).length / (set_a + set_b).length.to_f
     end
 end
 
@@ -89,6 +107,42 @@ end
         :value => token,
         :count => count,
         :rate => count.to_f / total,
+      }
+    }
+    JSON.unparse(res)
+  end
+
+  post '/focus' do
+    body  = params[:body]
+    focus = params[:focus] || 'database'
+    halt 400 unless body
+    halt 400 unless focus
+    mime_type = params[:mime_type] || 'application/ruby'
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'x-requested-with'
+    collection = Shikoku::Database.collection(mime_type)
+    tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
+    tokens = tokenizer.tokenize
+    content_type :json
+
+    set_cache = { }
+    res = { :focus => focus, :tokens => []}
+    focus_set = set_cache[focus] = get_file_set(focus)
+    tokens.each{ |token|
+      unless set_cache.has_key? token
+        if token =~ /\S/
+          set_cache[token] = Set.new
+        else
+          set_cache[token] = get_file_set(token)
+        end
+      end
+      tokens_set = set_cache[token]
+      rate = get_co_rate(focus_set, tokens_set)
+      p [token, rate]
+      res[:tokens] << {
+        :value => token,
+        :count => 0,
+        :rate => rate,
       }
     }
     JSON.unparse(res)
