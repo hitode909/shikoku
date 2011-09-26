@@ -1,6 +1,5 @@
-var create_token, fill_pattern, get_color, highlight, last_res, preview_color;
+var create_token, fill_pattern, get_color, highlight, preview_color;
 fill_pattern = 'color';
-last_res = null;
 get_color = function(level) {
   var h, l, rlevel;
   if (level < 0.0) {
@@ -25,13 +24,20 @@ create_token = function(def) {
   });
 };
 highlight = function(res) {
-  var fragment, max, total;
+  var focus, fragment, max, total;
   fragment = document.createDocumentFragment();
   total = res.total;
+  focus = res.focus;
   max = 0.01;
   $.each(res.tokens, function(i, data) {
     var node;
     node = create_token(data);
+    console.log([node.text(), focus]);
+    if (node.text() === focus) {
+      node.css({
+        'font-weight': 'bold'
+      });
+    }
     return fragment.appendChild(node[0]);
   });
   return $('#result').empty().append(fragment);
@@ -51,8 +57,9 @@ preview_color = function() {
   return _results;
 };
 $(function() {
-  var completions_container, last, selected_token;
+  var completions_container, last, last_res, selected_token;
   last = '';
+  last_res = null;
   setInterval(function() {
     var body;
     body = $('form').find('textarea').val();
@@ -76,39 +83,15 @@ $(function() {
   preview_color();
   selected_token = null;
   completions_container = $('#completions-container');
-  $('.token').live('click', function(event) {
-    var loading;
-    if (selected_token && $(event.target).parents('#completions-container').length > 0) {
-      selected_token.replaceWith($(this));
-      selected_token = null;
-      completions_container.hide();
-      return true;
-    }
-    selected_token = $(this);
-    completions_container.empty().show();
-    completions_container.css({
-      left: $(this).position().left + 20,
-      top: $(this).position().top + 20
-    });
-    loading = $('<div>').text('...').css('class', 'loading');
-    completions_container.append($('<strong>').append($(this).clone(true))).append($('<hr>')).append(loading);
-    return $.get('/suggest', {
-      token: $(this).text()
+  return $('.token').live('click', function(event) {
+    selected_token = $(this).text();
+    return $.post('/focus', {
+      body: $('form').find('textarea').val(),
+      focus: selected_token,
+      mime_type: 'application/ruby'
     }, function(res) {
-      var item, _i, _len, _results;
-      loading.remove();
-      _results = [];
-      for (_i = 0, _len = res.length; _i < _len; _i++) {
-        item = res[_i];
-        _results.push(completions_container.append($('<div>').append(create_token(item))));
-      }
-      return _results;
+      last_res = res;
+      return highlight(res);
     });
-  });
-  return $('body').click(function(event) {
-    if (!$(event.target).parents('#completions-container').length) {
-      completions_container.hide();
-      return selected_token = null;
-    }
   });
 });
