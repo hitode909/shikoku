@@ -131,7 +131,7 @@ end
 
   post '/focus' do
     body  = params[:body]
-    focus = params[:focus] || 'database'
+    focus = params[:focus]
     halt 400 unless body
     halt 400 unless focus
     mime_type = params[:mime_type] || 'application/ruby'
