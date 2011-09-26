@@ -9,6 +9,7 @@ get_color = function(level) {
   if (level > 1.0) {
     level = 1.0;
   }
+  level = Math.sin(level * Math.PI / 2);
   if (fill_pattern === 'color') {
     rlevel = 1.0 - level;
     h = level > 0.0 ? 90 + rlevel * 180.0 : 0.0;

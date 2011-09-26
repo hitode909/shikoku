@@ -4,6 +4,7 @@ last_res = null
 get_color = (level) ->
   level = 0.0 if level < 0.0
   level = 1.0 if level > 1.0
+  level = Math.sin(level * Math.PI / 2)
   if fill_pattern == 'color'
     rlevel = 1.0 - level
     h =  if level > 0.0 then 90 + rlevel * 180.0 else 0.0
