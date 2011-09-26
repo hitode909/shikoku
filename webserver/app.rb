@@ -46,14 +46,31 @@ class ShikokuApp < Sinatra::Base
 
     def get_file_set(token)
       entries = token_collection.find({'value' => token})
-      entries.inject(Set.new){ |set, token|
-        set << [token['url'], token['path']].join('-')
+      entries.inject(Set.new){ |set, entry|
+        set << [entry['url'], entry['path']].join('-')
       }
+    end
+
+    def get_file_set_hash_from_tokens(tokens)
+      res = { }
+      from = Time.now
+      entries = token_collection.find({
+          "$or" => tokens.select{ |s| s =~ /\S/ }.map{ |token|
+            { 'value' => token}
+          }
+        })
+      entries.each{ |entry|
+        value = entry['value']
+        file_key = [entry['url'], entry['path']].join('-')
+        res[value] ||= Set.new
+        res[value] << file_key
+      }
+      res
     end
 
     def get_co_rate(set_a, set_b)
       return 0 if set_a.length == 0 || set_b.length == 0
-      (set_a & set_b).length / (set_a + set_b).length.to_f
+      (set_a & set_b).length.to_f / (set_a + set_b).length.to_f
     end
 end
 
@@ -123,25 +140,18 @@ end
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
     tokens = tokenizer.tokenize
+    halt 400 unless tokens.find{ |s| s == focus}
     content_type :json
 
-    set_cache = { }
+    set_cache = get_file_set_hash_from_tokens(tokens)
     res = { :focus => focus, :tokens => []}
-    focus_set = set_cache[focus] = get_file_set(focus)
+    focus_set = set_cache[focus]
     tokens.each{ |token|
-      unless set_cache.has_key? token
-        if token =~ /\S/
-          set_cache[token] = Set.new
-        else
-          set_cache[token] = get_file_set(token)
-        end
-      end
       tokens_set = set_cache[token]
       rate = get_co_rate(focus_set, tokens_set)
-      p [token, rate]
       res[:tokens] << {
         :value => token,
-        :count => 0,
+        :count => (focus_set & tokens_set).length,
         :rate => rate,
       }
     }
