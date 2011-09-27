@@ -169,7 +169,6 @@ end
         end
       end
       count = count_cache[token]
-      p [token, count]
       res[:tokens] << {
         :value => token,
         :count => count,
