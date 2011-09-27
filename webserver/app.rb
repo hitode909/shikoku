@@ -51,16 +51,45 @@ class ShikokuApp < Sinatra::Base
       }
     end
 
+    # 動くけど1分くらいかかる
     def get_file_set_hash_from_tokens(tokens)
+      cond = {
+        "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
+          { 'value' => token}
+        }
+      }
+      from = Time.now
+      list = token_collection.group(
+        :cond => cond,
+        :key => [:value],
+        :initial => { :summary => {}, :keys => [] },
+        :reduce => "function(doc, out) { out.summary[doc.url + '/' + doc.path] = true; }",
+        :finalize => "function(out) { for (var key in out.summary) { out.keys.push(key); }; delete out.summary; return out; }"
+        )
+
+      # [ { String value, [String] keys } ]
+
+      res = { }
+      list.each{ |item|
+        res[item['value']] = Set.new(item['keys'])
+      }
+
+      # { String value: Set(String) keys }
+
+      res
+    end
+
+    def get_file_set_hash_from_tokens_old(tokens)
       res = { }
       from = Time.now
-      entries = token_collection.find({
-          "$or" => tokens.select{ |s| s =~ /\S/ }.map{ |token|
+      query = [{
+          "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
             { 'value' => token}
           }
         }, {
           :fields => [:url, :path, :value]
-        })
+      }]
+      entries = token_collection.find(*query)
       entries.each{ |entry|
         value = entry['value']
         file_key = [entry['url'], entry['path']].join('-')
