@@ -55,6 +55,11 @@ module Shikoku
       Shikoku::Database.collection(mime_type + "/count_summary")
     end
 
+    # どのファイルにでるか
+    def file_token_db
+      Shikoku::Database.collection(mime_type + "/file_token")
+    end
+
     # 計算 + DBに保存
     def save_tokens
       return if has_records?
@@ -65,6 +70,13 @@ module Shikoku
       }
       list.uniq.each{ |v|
         file_summary_db.update({ :value => v}, { :$inc => { :count => 1}}, {:upsert => true})
+
+        key = {
+          :value => v,
+          :url   => repository.remote_url,
+          :path  => path,
+        }
+        file_token_db.update(key, key, {:upsert => true})
       }
       files_db.insert(as_key)
     end
@@ -74,6 +86,11 @@ module Shikoku
       db.ensure_index([['url', Mongo::ASCENDING], ['path', Mongo::ASCENDING], ['mtime', Mongo::ASCENDING]])
       count_summary_db.ensure_index([['value', Mongo::ASCENDING]])
       file_summary_db.ensure_index([['value', Mongo::ASCENDING]])
+      file_token_db.ensure_index([
+          ['value', Mongo::ASCENDING],
+          ['path', Mongo::ASCENDING],
+          ['url', Mongo::ASCENDING],
+        ])
     end
 
     def has_records?

@@ -51,8 +51,27 @@ class ShikokuApp < Sinatra::Base
       }
     end
 
-    # 動くけど1分くらいかかる
+    # サマリーから引く
     def get_file_set_hash_from_tokens(tokens)
+      cond = {
+        "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
+          { 'value' => token}
+        }
+      }
+      res = Hash.new(Set.new)
+      collection = Shikoku::Database.collection('application/ruby/file_token')
+
+      tokens.select{ |s| s =~ /\S/ }.uniq.each{ |token|
+        keys = collection.find({ :value => token}).to_a.map{ |entry|
+          [entry['url'], entry['path']].join('-')
+        }
+        res[token] = Set.new(keys)
+      }
+      res
+    end
+
+    # 動くけど1分くらいかかる
+    def get_file_set_hash_from_tokens_group(tokens)
       cond = {
         "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
           { 'value' => token}
