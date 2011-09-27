@@ -1,6 +1,18 @@
 fill_pattern = 'color'
 fill_factor = 180.0
 
+throttle = (fn, delay) ->
+  timer = null
+  ->
+    return if timer
+    context = this
+    args = arguments
+    timer = setTimeout ->
+      timer = null
+      fn.apply context, args
+    ,delay
+
+
 get_color = (level) ->
   level = 0.0 if level < 0.0
   level = 1.0 if level > 1.0
@@ -27,7 +39,6 @@ highlight = (res) ->
 
   $.each res.tokens, (i, data) ->
     node = create_token(data)
-    console.log [node.text(), focus]
     if node.text() == focus
       node.css
        'font-weight': 'bold'
@@ -75,15 +86,20 @@ $ ->
 
     selected_token = $(this).text()
 
+    $('#result').css
+      background: '#ddd'
     $.post '/focus'
       body: $('form').find('textarea').val()
       focus: selected_token
       mime_type: 'application/ruby'
       (res) ->
+        $('#result').css
+          background: ''
         last_res = res
         highlight(res)
 
-  $('#fill-factor').change ->
+  $('#fill-factor').change throttle((event) ->
     fill_factor = $(this).val()
     preview_color()
     highlight(last_res) if last_res
+  , 100)
