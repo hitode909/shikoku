@@ -33,3 +33,7 @@
     display: inline-block;
     cursor: pointer;
 }
+
+#fill-factor {
+    width: 600px;
+}

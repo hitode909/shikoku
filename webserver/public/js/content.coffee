@@ -1,4 +1,5 @@
 fill_pattern = 'color'
+fill_factor = 180.0
 
 get_color = (level) ->
   level = 0.0 if level < 0.0
@@ -6,8 +7,9 @@ get_color = (level) ->
   level = Math.sin(level * Math.PI / 2)
   if fill_pattern == 'color'
     rlevel = 1.0 - level
-    h =  if level > 0.0 then 90 + rlevel * 180.0 else 0.0
-    l = (1-level*level) * 50
+    # fill_factor * 0.5 のところ いい感じにしたい
+    h =  if level > 0.0 then fill_factor * 0.5 + rlevel * fill_factor else 0.0
+    l = (1.0 - Math.pow(level, 5)) * 50
     "hsl(#{ h }, 100%, #{ l }%)"
   else
     "hsl(0, 0%, #{ level * 90 }%)"
@@ -80,3 +82,8 @@ $ ->
       (res) ->
         last_res = res
         highlight(res)
+
+  $('#fill-factor').change ->
+    fill_factor = $(this).val()
+    preview_color()
+    highlight(last_res) if last_res
