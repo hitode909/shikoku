@@ -193,17 +193,19 @@ end
     halt 400 unless tokens.find{ |s| s == focus}
     content_type :json
 
+    res_cache = { }
     set_cache = get_file_set_hash_from_tokens(tokens)
     res = { :focus => focus, :tokens => []}
     focus_set = set_cache[focus]
     tokens.each{ |token|
       tokens_set = set_cache[token] || Set.new
       rate = get_co_rate(focus_set, tokens_set)
-      res[:tokens] << {
+      res_cache[token] ||= {
         :value => token,
         :count => (focus_set & tokens_set).length,
         :rate => rate,
       }
+      res[:tokens] << res_cache[token]
     }
     JSON.unparse(res)
   end
