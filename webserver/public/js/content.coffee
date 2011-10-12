@@ -18,7 +18,7 @@ get_color = (level) ->
   level = 0.0 if level < 0.0
   level = 1.0 if level > 1.0
   # level = Math.sin(level * Math.PI / 2)
-  level = Math.log(level + 1.0) / Math.log(2.0)
+  # level = Math.log(level + 1.0) / Math.log(2.0)
   if fill_pattern == 'color'
     rlevel = 1.0 - level
     # fill_factor * 0.5 のところ いい感じにしたい
