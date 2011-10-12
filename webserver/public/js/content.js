@@ -59,7 +59,7 @@ highlight_histogram = function(res) {
   for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
     list[i] = summary[i] || 0;
   }
-  return preview_color_by_summary(round_list(list, 300));
+  return preview_color_by_summary(round_list(list, 200));
 };
 round_list = function(list, range) {
   var i, j, res, v, _ref, _ref2, _ref3;
@@ -113,12 +113,12 @@ preview_color_by_summary = function(summary) {
   $('#color-sample').empty();
   _results = [];
   for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
-    height = 200 * summary[i];
+    height = 200 * (Math.log(summary[i] + 1) / Math.log(2.0));
     _results.push($('#color-sample').append($('<span>').attr('data-rate-index', i).css({
       display: 'inline-block',
       width: '1px',
       height: "" + height + "px",
-      background: get_color(i / color_sample_length)
+      background: get_color(i / color_sample_length + 0.0001)
     })));
   }
   return _results;

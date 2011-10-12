@@ -92,7 +92,7 @@ preview_color_by_summary = (summary)->
       display: 'inline-block'
       width: '1px'
       height: "#{height}px"
-      background: get_color(i / color_sample_length)
+      background: get_color(i / color_sample_length + 0.0001)
 
 $ ->
   last = ''
