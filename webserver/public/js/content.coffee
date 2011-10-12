@@ -1,5 +1,6 @@
 fill_pattern = 'color'
 fill_factor = 180.0
+color_sample_length = 500
 
 throttle = (fn, delay) ->
   timer = null
@@ -16,7 +17,8 @@ throttle = (fn, delay) ->
 get_color = (level) ->
   level = 0.0 if level < 0.0
   level = 1.0 if level > 1.0
-  level = Math.sin(level * Math.PI / 2)
+  # level = Math.sin(level * Math.PI / 2)
+  level = Math.log(level + 1.0) / Math.log(2.0)
   if fill_pattern == 'color'
     rlevel = 1.0 - level
     # fill_factor * 0.5 のところ いい感じにしたい
@@ -29,6 +31,31 @@ get_color = (level) ->
 create_token = (def) ->
   $('<span>').addClass('token').text(def.value).attr('title', "#{ def.count } (#{ def.rate * 100 })", "data-rate", def.rate).css
       color: get_color(def.rate)
+
+highlight_histogram = (res) ->
+  fragment = document.createDocumentFragment()
+  summary = {}
+  $.each res.tokens, (i, data) ->
+    index = Math.floor(data.rate * color_sample_length)
+    summary[index] ?= 0
+    summary[index] += 1 / res.tokens.length
+
+  list = []
+  for i in [0..color_sample_length]
+    list[i] = summary[i] || 0
+
+  preview_color_by_summary(round_list(list, 200))
+
+round_list = (list, range) ->
+  res = []
+  for i in [0..(list.length-1)]
+    v = 0
+    for j in [Math.floor(i - range*0.5)..Math.floor(i + range*0.5)]
+      if 0 <= j && j < list.length && list[j] > 0
+        v += list[j] * Math.pow(0.9,  Math.abs(i - j))
+    res[i] = v
+
+  res
 
 highlight = (res) ->
   fragment = document.createDocumentFragment()
@@ -45,14 +72,26 @@ highlight = (res) ->
     fragment.appendChild(node[0])
   $('#result').empty().append(fragment)
 
+  highlight_histogram(res)
+
 preview_color = ->
   $('#color-sample').empty()
-  for i in [0..500]
+  for i in [0..color_sample_length]
     $('#color-sample').append $('<span>').attr('data-rate-index', i).css
       display: 'inline-block'
       width: '1px'
       height: '30px'
-      background: get_color(i / 500)
+      background: get_color(i / color_sample_length)
+
+preview_color_by_summary = (summary)->
+  $('#color-sample').empty()
+  for i in [0..color_sample_length]
+    height = 200 * (Math.log(summary[i] + 1) / Math.log(2.0))
+    $('#color-sample').append $('<span>').attr('data-rate-index', i).css
+      display: 'inline-block'
+      width: '1px'
+      height: "#{height}px"
+      background: get_color(i / color_sample_length)
 
 $ ->
   last = ''

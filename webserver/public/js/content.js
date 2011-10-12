@@ -1,6 +1,7 @@
-var create_token, fill_factor, fill_pattern, get_color, highlight, preview_color, throttle;
+var color_sample_length, create_token, fill_factor, fill_pattern, get_color, highlight, highlight_histogram, preview_color, preview_color_by_summary, round_list, throttle;
 fill_pattern = 'color';
 fill_factor = 180.0;
+color_sample_length = 500;
 throttle = function(fn, delay) {
   var timer;
   timer = null;
@@ -25,7 +26,7 @@ get_color = function(level) {
   if (level > 1.0) {
     level = 1.0;
   }
-  level = Math.sin(level * Math.PI / 2);
+  level = Math.log(level + 1.0) / Math.log(2.0);
   if (fill_pattern === 'color') {
     rlevel = 1.0 - level;
     h = level > 0.0 ? fill_factor * 0.5 + rlevel * fill_factor : 0.0;
@@ -39,6 +40,38 @@ create_token = function(def) {
   return $('<span>').addClass('token').text(def.value).attr('title', "" + def.count + " (" + (def.rate * 100) + ")", "data-rate", def.rate).css({
     color: get_color(def.rate)
   });
+};
+highlight_histogram = function(res) {
+  var fragment, i, list, summary;
+  fragment = document.createDocumentFragment();
+  summary = {};
+  $.each(res.tokens, function(i, data) {
+    var index, _ref;
+    index = Math.floor(data.rate * color_sample_length);
+    if ((_ref = summary[index]) == null) {
+      summary[index] = 0;
+    }
+    return summary[index] += 1 / res.tokens.length;
+  });
+  list = [];
+  for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
+    list[i] = summary[i] || 0;
+  }
+  return preview_color_by_summary(round_list(list, 200));
+};
+round_list = function(list, range) {
+  var i, j, res, v, _ref, _ref2, _ref3;
+  res = [];
+  for (i = 0, _ref = list.length - 1; 0 <= _ref ? i <= _ref : i >= _ref; 0 <= _ref ? i++ : i--) {
+    v = 0;
+    for (j = _ref2 = Math.floor(i - range * 0.5), _ref3 = Math.floor(i + range * 0.5); _ref2 <= _ref3 ? j <= _ref3 : j >= _ref3; _ref2 <= _ref3 ? j++ : j--) {
+      if (0 <= j && j < list.length && list[j] > 0) {
+        v += list[j] * Math.pow(0.9, Math.abs(i - j));
+      }
+    }
+    res[i] = v;
+  }
+  return res;
 };
 highlight = function(res) {
   var focus, fragment, max, total;
@@ -56,18 +89,34 @@ highlight = function(res) {
     }
     return fragment.appendChild(node[0]);
   });
-  return $('#result').empty().append(fragment);
+  $('#result').empty().append(fragment);
+  return highlight_histogram(res);
 };
 preview_color = function() {
   var i, _results;
   $('#color-sample').empty();
   _results = [];
-  for (i = 0; i <= 500; i++) {
+  for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
     _results.push($('#color-sample').append($('<span>').attr('data-rate-index', i).css({
       display: 'inline-block',
       width: '1px',
       height: '30px',
-      background: get_color(i / 500)
+      background: get_color(i / color_sample_length)
+    })));
+  }
+  return _results;
+};
+preview_color_by_summary = function(summary) {
+  var height, i, _results;
+  $('#color-sample').empty();
+  _results = [];
+  for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
+    height = 200 * (Math.log(summary[i] + 1) / Math.log(2.0));
+    _results.push($('#color-sample').append($('<span>').attr('data-rate-index', i).css({
+      display: 'inline-block',
+      width: '1px',
+      height: "" + height + "px",
+      background: get_color(i / color_sample_length)
     })));
   }
   return _results;
