@@ -26,7 +26,6 @@ get_color = function(level) {
   if (level > 1.0) {
     level = 1.0;
   }
-  level = Math.log(level + 1.0) / Math.log(2.0);
   if (fill_pattern === 'color') {
     rlevel = 1.0 - level;
     h = level > 0.0 ? fill_factor * 0.5 + rlevel * fill_factor : 0.0;
@@ -47,6 +46,9 @@ highlight_histogram = function(res) {
   summary = {};
   $.each(res.tokens, function(i, data) {
     var index, _ref;
+    if (!data.value.match(/\S/)) {
+      return;
+    }
     index = Math.floor(data.rate * color_sample_length);
     if ((_ref = summary[index]) == null) {
       summary[index] = 0;
@@ -57,7 +59,7 @@ highlight_histogram = function(res) {
   for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
     list[i] = summary[i] || 0;
   }
-  return preview_color_by_summary(round_list(list, 200));
+  return preview_color_by_summary(round_list(list, 300));
 };
 round_list = function(list, range) {
   var i, j, res, v, _ref, _ref2, _ref3;
@@ -111,7 +113,7 @@ preview_color_by_summary = function(summary) {
   $('#color-sample').empty();
   _results = [];
   for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
-    height = 200 * (Math.log(summary[i] + 1) / Math.log(2.0));
+    height = 200 * summary[i];
     _results.push($('#color-sample').append($('<span>').attr('data-rate-index', i).css({
       display: 'inline-block',
       width: '1px',
