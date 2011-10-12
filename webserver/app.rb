@@ -122,6 +122,20 @@ class ShikokuApp < Sinatra::Base
       return 0 if set_a.length == 0 || set_b.length == 0
       (set_a & set_b).length.to_f / (set_a + set_b).length.to_f
     end
+
+    def get_file_counts(tokens)
+      cond = {
+        "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
+          { 'value' => token}
+        }
+      }
+      collection = Shikoku::Database.collection('application/ruby/file_summary')
+      res = { }
+      collection.find(cond).each{ |entry|
+        res[entry['value']] = entry['count']
+      }
+      res
+    end
 end
 
   get '/' do
@@ -158,17 +172,11 @@ end
     total = get_file_total
     content_type :json
 
-    count_cache ||= { }
+    counts = get_file_counts(tokens)
+
     res = { :total => total, :tokens => []}
     tokens.each{ |token|
-      unless count_cache.has_key? token
-        if token =~ /\S/
-          count_cache[token] = get_file_count(token)
-        else
-          count_cache[token] = 0
-        end
-      end
-      count = count_cache[token]
+      count = counts[token] || 0
       res[:tokens] << {
         :value => token,
         :count => count,
