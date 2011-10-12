@@ -36,6 +36,7 @@ highlight_histogram = (res) ->
   fragment = document.createDocumentFragment()
   summary = {}
   $.each res.tokens, (i, data) ->
+    return unless data.value.match(/\S/)
     index = Math.floor(data.rate * color_sample_length)
     summary[index] ?= 0
     summary[index] += 1 / res.tokens.length
