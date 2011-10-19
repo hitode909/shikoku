@@ -124,8 +124,10 @@ class ShikokuApp < Sinatra::Base
     end
 
     def get_file_counts(tokens)
+      uniq_tokens = tokens.select{ |s| s =~ /\S/ }.uniq
+      return { } if uniq_tokens.empty?
       cond = {
-        "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
+        "$or" => uniq_tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
           { 'value' => token}
         }
       }

@@ -1,8 +1,26 @@
+body {
+    margin: 10px;
+}
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+#color-graph {
+    position: relative;
+    height: 100px;
+}
+
+#color-graph span {
+    display: inline-block;
+    vertical-align: bottom;
+    width: 1px;
+}
+
+
+
 #color-sample {
-    /* position: fixed; */
-    /* right: 5px; */
-    /* top: 5px; */
-    padding: 5px;
+    height: 30px;
 }
 
 #color-sample span {
@@ -35,5 +53,10 @@
 }
 
 #fill-factor {
-    width: 600px;
+    width: 500px;
+}
+
+textarea#source-code {
+    width: 500px;
+    height: 400px;
 }
