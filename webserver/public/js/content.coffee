@@ -63,8 +63,6 @@ highlight = (res) ->
   total = res.total
   focus = res.focus
 
-  max = 0.01
-
   $.each res.tokens, (i, data) ->
     node = create_token(data)
     if node.text() == focus
@@ -79,9 +77,6 @@ preview_color = ->
   $('#color-sample').empty()
   for i in [0..color_sample_length]
     $('#color-sample').append $('<span>').attr('data-rate-index', i).css
-      display: 'inline-block'
-      width: '1px'
-      height: '30px'
       background: get_color(i / color_sample_length)
 
 preview_color_by_summary = (summary)->
@@ -89,14 +84,14 @@ preview_color_by_summary = (summary)->
   for i in [0..color_sample_length]
     height = 200 * (Math.log(summary[i] + 1) / Math.log(2.0))
     $('#color-sample').append $('<span>').attr('data-rate-index', i).css
-      display: 'inline-block'
-      width: '1px'
       height: "#{height}px"
       background: get_color(i / color_sample_length + 0.0001)
 
 $ ->
   last = ''
   last_res = null
+
+  fill_factor = $('#fill-factor').val()
 
   setInterval ->
     body = $('form').find('textarea').val()

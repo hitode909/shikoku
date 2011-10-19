@@ -12,17 +12,18 @@
       <%= @tokens_count %> トークン <%= @files_count %> ファイル あります
     </div>
     <form method="POST" action="/">
-      <textarea rows="30" cols="80"></textarea>
+      <textarea id="source-code"></textarea>
       <!-- <br> -->
       <!-- <input type="submit" value="送信"></input> -->
     </form>
-    <div class="color-changer">
-      <label><input type="radio" name="fill-type" value="color" checked>カラー</label>
-      <label><input type="radio" name="fill-type" value="gray">グレイスケール</label>
-    </div>
+    <!-- <div class="color-changer"> -->
+    <!--   <label><input type="radio" name="fill-type" value="color" checked>カラー</label> -->
+    <!--   <label><input type="radio" name="fill-type" value="gray">グレイスケール</label> -->
+    <!-- </div> -->
+    <div id="color-graph"></div>
     <div id="color-sample"></div>
     <div>
-      <input id="fill-factor" type="range" min="0.0" max="360.0" value="180.0"/>
+      <input id="fill-factor" type="range" min="0.0" max="360.0" value="200"/>
     </div>
 
     <div id="completions-container"></div>

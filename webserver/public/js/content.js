@@ -76,11 +76,10 @@ round_list = function(list, range) {
   return res;
 };
 highlight = function(res) {
-  var focus, fragment, max, total;
+  var focus, fragment, total;
   fragment = document.createDocumentFragment();
   total = res.total;
   focus = res.focus;
-  max = 0.01;
   $.each(res.tokens, function(i, data) {
     var node;
     node = create_token(data);
@@ -100,9 +99,6 @@ preview_color = function() {
   _results = [];
   for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
     _results.push($('#color-sample').append($('<span>').attr('data-rate-index', i).css({
-      display: 'inline-block',
-      width: '1px',
-      height: '30px',
       background: get_color(i / color_sample_length)
     })));
   }
@@ -115,8 +111,6 @@ preview_color_by_summary = function(summary) {
   for (i = 0; 0 <= color_sample_length ? i <= color_sample_length : i >= color_sample_length; 0 <= color_sample_length ? i++ : i--) {
     height = 200 * (Math.log(summary[i] + 1) / Math.log(2.0));
     _results.push($('#color-sample').append($('<span>').attr('data-rate-index', i).css({
-      display: 'inline-block',
-      width: '1px',
       height: "" + height + "px",
       background: get_color(i / color_sample_length + 0.0001)
     })));
@@ -127,6 +121,7 @@ $(function() {
   var completions_container, last, last_res, selected_token;
   last = '';
   last_res = null;
+  fill_factor = $('#fill-factor').val();
   setInterval(function() {
     var body;
     body = $('form').find('textarea').val();

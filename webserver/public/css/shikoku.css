@@ -6,22 +6,9 @@ body {
     padding: 0px;
 }
 
-#color-graph {
-    position: relative;
-    height: 100px;
-}
-
-#color-graph span {
-    display: inline-block;
-    vertical-align: bottom;
-    width: 1px;
-}
-
-
-
-#color-sample {
-    height: 30px;
-}
+/* #color-sample { */
+/*     height: 30px; */
+/* } */
 
 #color-sample span {
     display: inline-block;

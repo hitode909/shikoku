@@ -91,6 +91,10 @@ module Shikoku
           ['path', Mongo::ASCENDING],
           ['url', Mongo::ASCENDING],
         ])
+      file_token_db.ensure_index([
+          ['value', Mongo::ASCENDING],
+        ])
+
     end
 
     def has_records?

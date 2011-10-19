@@ -6,6 +6,13 @@ class ShikokuApp < Sinatra::Base
 
   helpers do
 
+    def stopwatch(title, &block)
+      from = Time.now
+      res = yield block
+      warn "#{title}\t#{Time.now - from}"
+      res
+    end
+
     def get_token_count(token)
       Shikoku::Database.collection('application/ruby/count_summary').find_one({ 'value' => token})['count']
     rescue
@@ -53,14 +60,29 @@ class ShikokuApp < Sinatra::Base
 
     # サマリーから引く
     def get_file_set_hash_from_tokens(tokens)
+      file_counts = get_file_counts(tokens)
+
       cond = {
-        "$or" => tokens.select{ |s| s =~ /\S/ }.uniq.map{ |token|
+        "$or" => tokens.uniq.select{ |s| s =~ /\S/ && file_counts[s]}.map{ |token|
           { 'value' => token}
         }
       }
-      res = Hash.new(Set.new)
+      res = {}
       collection = Shikoku::Database.collection('application/ruby/file_token')
 
+      stopwatch("retrieve"){
+        cursor = collection.find(cond)
+        cursor.each{ |entry|
+          res[entry['value']] ||= Set.new
+          res[entry['value']] << [entry['url'], entry['path']].join('-')
+        }
+      }
+
+      res
+    end
+
+    # サマリー，ちょろちょろ引く
+    def get_file_set_hash_from_tokens_liner(tokens)
       tokens.select{ |s| s =~ /\S/ }.uniq.each{ |token|
         keys = collection.find({ :value => token}).to_a.map{ |entry|
           [entry['url'], entry['path']].join('-')
