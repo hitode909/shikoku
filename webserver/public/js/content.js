@@ -1,4 +1,4 @@
-var color_sample_length, create_token, fill_factor, fill_pattern, get_color, highlight, highlight_histogram, preview_color, preview_color_by_summary, round_list, throttle;
+var cache, color_sample_length, create_token, fill_factor, fill_pattern, get_color, get_color_from_token_class, get_random_color, highlight, highlight_histogram, preview_color, preview_color_by_summary, round_list, throttle;
 fill_pattern = 'color';
 fill_factor = 180.0;
 color_sample_length = 500;
@@ -35,9 +35,28 @@ get_color = function(level) {
     return "hsl(0, 0%, " + (level * 90) + "%)";
   }
 };
+cache = {};
+get_random_color = function() {
+  var h;
+  console.log('get_random');
+  h = Math.random() * 360;
+  return "hsl(" + h + ", 50%, 50%)";
+};
+get_color_from_token_class = function(token_class) {
+  var h, i, sum, _ref;
+  sum = 0;
+  for (i = 0, _ref = token_class.length - 1; 0 <= _ref ? i <= _ref : i >= _ref; 0 <= _ref ? i++ : i--) {
+    sum += token_class.charCodeAt(i);
+  }
+  console.log(sum);
+  h = sum % 360;
+  return "hsl(" + h + ", 50%, 50%)";
+};
 create_token = function(def) {
-  return $('<span>').addClass('token').text(def.value).attr('title', "" + def.count + " (" + (def.rate * 100) + ")", "data-rate", def.rate).css({
-    color: get_color(def.rate)
+  return $('<span>').addClass('token').text(def.value).attr({
+    title: def.token_class
+  }).css({
+    color: get_color_from_token_class(def.token_class)
   });
 };
 highlight_histogram = function(res) {
@@ -76,21 +95,15 @@ round_list = function(list, range) {
   return res;
 };
 highlight = function(res) {
-  var focus, fragment, total;
+  var fragment;
   fragment = document.createDocumentFragment();
-  total = res.total;
-  focus = res.focus;
   $.each(res.tokens, function(i, data) {
     var node;
     node = create_token(data);
-    if (node.text() === focus) {
-      node.css({
-        'font-weight': 'bold'
-      });
-    }
     return fragment.appendChild(node[0]);
   });
   $('#result').empty().append(fragment);
+  return;
   return highlight_histogram(res);
 };
 preview_color = function() {
@@ -137,6 +150,7 @@ $(function() {
       return highlight(res);
     });
   }, 1000);
+  return;
   $('input[name="fill-type"]').change(function() {
     fill_pattern = $(this).val();
     preview_color();

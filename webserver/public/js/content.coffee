@@ -28,9 +28,24 @@ get_color = (level) ->
   else
     "hsl(0, 0%, #{ level * 90 }%)"
 
+cache = {}
+
+get_random_color = ->
+  console.log('get_random')
+  h = Math.random() * 360
+  "hsl(#{ h }, 50%, 50%)"
+
+get_color_from_token_class = (token_class) ->
+  sum = 0
+  for i in [0..token_class.length-1]
+    sum += token_class.charCodeAt(i)
+  console.log(sum)
+  h = sum % 360
+  "hsl(#{ h }, 50%, 50%)"
+
 create_token = (def) ->
-  $('<span>').addClass('token').text(def.value).attr('title', "#{ def.count } (#{ def.rate * 100 })", "data-rate", def.rate).css
-      color: get_color(def.rate)
+  $('<span>').addClass('token').text(def.value).attr(title: def.token_class).css
+      color: get_color_from_token_class(def.token_class)
 
 highlight_histogram = (res) ->
   fragment = document.createDocumentFragment()
@@ -60,17 +75,13 @@ round_list = (list, range) ->
 
 highlight = (res) ->
   fragment = document.createDocumentFragment()
-  total = res.total
-  focus = res.focus
 
   $.each res.tokens, (i, data) ->
     node = create_token(data)
-    if node.text() == focus
-      node.css
-       'font-weight': 'bold'
     fragment.appendChild(node[0])
   $('#result').empty().append(fragment)
 
+  return
   highlight_histogram(res)
 
 preview_color = ->
@@ -105,6 +116,8 @@ $ ->
         last_res = res
         highlight(res)
   , 1000
+
+  return
 
   $('input[name="fill-type"]').change ->
     fill_pattern = $(this).val()

@@ -31,7 +31,11 @@ module Shikoku
     # 空白だけのトークンはDBに入れない
     def create_tokens_for_save
       create_tokens.select{ |s|
-        s =~ /\S/
+        if s.kind_of? Shikoku::Token
+          not s.is_separator?
+        else
+          s =~ /\S/
+        end
       }
     end
 
@@ -60,8 +64,21 @@ module Shikoku
       Shikoku::Database.collection(mime_type + "/file_token")
     end
 
-    # 計算 + DBに保存
+    # 作り直し
+    # 出現回数と，そのときにどのクラスであったか，を記録
     def save_tokens
+      return if has_records?
+      list = create_tokens_for_save
+
+      list.each{ |v|
+        count_summary_db.update({ :value => v.content }, { :$inc => { :count => 1, :"token_class.#{v.token_class}" => 1}}, {:upsert => true})
+      }
+
+      files_db.insert(as_key)
+    end
+
+    # 計算 + DBに保存
+    def _save_tokens
       return if has_records?
       list = create_tokens_for_save
       db.insert(tokens_to_records(list))

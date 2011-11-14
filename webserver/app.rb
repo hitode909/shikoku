@@ -160,6 +160,27 @@ class ShikokuApp < Sinatra::Base
       }
       res
     end
+
+    def get_file_classes(tokens)
+      uniq_tokens = tokens.select{ |s| s =~ /\S/ }.uniq
+      return { } if uniq_tokens.empty?
+      cond = {
+        "$or" => uniq_tokens.map{ |token|
+          { 'value' => token}
+        }
+      }
+      collection = Shikoku::Database.collection('application/ruby/count_summary')
+      res = { }
+      collection.find(cond).each{ |entry|
+        p entry['token_class']
+        max = entry['token_class'].each_pair.map{ |k, v|
+          [k, v]
+        }.sort_by{ |pair| pair[1]}.last[0]
+        p max
+        res[entry['value']] = max
+      }
+      res
+    end
 end
 
   get '/' do
@@ -192,19 +213,17 @@ end
     response['Access-Control-Allow-Headers'] = 'x-requested-with'
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
-    tokens = tokenizer.tokenize
-    total = get_file_total
+    tokens = tokenizer.tokenize_as_string
     content_type :json
 
-    counts = get_file_counts(tokens)
+    counts = get_file_classes(tokens)
 
-    res = { :total => total, :tokens => []}
+    res = { :tokens => [] }
     tokens.each{ |token|
-      count = counts[token] || 0
+      token_class = counts[token] || 'nil'
       res[:tokens] << {
         :value => token,
-        :count => count,
-        :rate => count.to_f / total,
+        :token_class => token_class,
       }
     }
     JSON.unparse(res)

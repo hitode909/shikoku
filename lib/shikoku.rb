@@ -8,6 +8,7 @@ module Shikoku
   require 'shikoku/utility'
   require 'shikoku/github_crawler'
   require 'shikoku/repository'
+  require 'shikoku/token'
   require 'shikoku/tokenizer'
   require 'shikoku/entry'
   require 'shikoku/database'

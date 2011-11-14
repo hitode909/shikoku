@@ -39,7 +39,7 @@ module Shikoku
 
     class Basic < self
       def tokenize
-        content.split(/(\s+)/m)
+        content.split(/\b|(\s+)/m)
       end
     end
 
@@ -51,6 +51,13 @@ module Shikoku
 
     class ApplicationRuby < self
       def tokenize
+        Ripper.lex(content).map{ |tupple|
+          position, token_class, token = *tupple
+          Shikoku::Token.new_from_content_and_token_class(token, token_class)
+        }
+      end
+
+      def tokenize_as_string
         Ripper.tokenize(content, path)
       end
     end
