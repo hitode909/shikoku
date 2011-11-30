@@ -38,9 +38,10 @@ get_random_color = ->
 get_color_from_token_class = (token_class) ->
   sum = 0
   for i in [0..token_class.length-1]
-    sum += token_class.charCodeAt(i)
-  console.log(sum)
-  h = sum % 360
+    sum += token_class.charCodeAt(i) * i
+  h = sum % 31 * 11
+  console.log(token_class, h, sum)
+
   "hsl(#{ h }, 50%, 50%)"
 
 create_token = (def) ->

@@ -46,10 +46,10 @@ get_color_from_token_class = function(token_class) {
   var h, i, sum, _ref;
   sum = 0;
   for (i = 0, _ref = token_class.length - 1; 0 <= _ref ? i <= _ref : i >= _ref; 0 <= _ref ? i++ : i--) {
-    sum += token_class.charCodeAt(i);
+    sum += token_class.charCodeAt(i) * i;
   }
-  console.log(sum);
-  h = sum % 360;
+  h = sum % 31 * 11;
+  console.log(token_class, h, sum);
   return "hsl(" + h + ", 50%, 50%)";
 };
 create_token = function(def) {
