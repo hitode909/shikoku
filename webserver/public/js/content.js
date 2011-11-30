@@ -98,11 +98,11 @@ highlight = function(res) {
   var fragment;
   if (res.is_valid) {
     $('#result').css({
-      border: '1px solid #aaf'
+      border: '4px solid #88f'
     });
   } else {
     $('#result').css({
-      border: '1px solid #faa'
+      border: '4px solid #f88'
     });
   }
   fragment = document.createDocumentFragment();

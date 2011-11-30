@@ -226,9 +226,6 @@ class ShikokuApp < Sinatra::Base
 end
 
   get '/' do
-    @tokens_count = Shikoku::Database.collection('application/ruby').count
-    @files_count  = Shikoku::Database.collection('application/ruby/files').count
-
     erb :index
   end
 
@@ -275,7 +272,7 @@ end
 
     res = { :tokens => [], :is_valid => false }
 
-    tokens = body.split(/\b|(\s+)/)
+    tokens = body.split(/(\s+)/).map{ |s| s.split(/\b/) }.flatten
 
     counts = get_file_classes(tokens)
 
