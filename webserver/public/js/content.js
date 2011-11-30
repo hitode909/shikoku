@@ -96,6 +96,15 @@ round_list = function(list, range) {
 };
 highlight = function(res) {
   var fragment;
+  if (res.is_valid) {
+    $('#result').css({
+      border: '1px solid #aaf'
+    });
+  } else {
+    $('#result').css({
+      border: '1px solid #faa'
+    });
+  }
   fragment = document.createDocumentFragment();
   $.each(res.tokens, function(i, data) {
     var node;

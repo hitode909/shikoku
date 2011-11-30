@@ -60,6 +60,10 @@ module Shikoku
       def tokenize_as_string
         Ripper.tokenize(content, path)
       end
+
+      def is_valid
+        tokenize_as_string.join("") == content
+      end
     end
 
     class ApplicationPerl < self

@@ -74,6 +74,13 @@ round_list = (list, range) ->
   res
 
 highlight = (res) ->
+  if res.is_valid
+    $('#result').css
+      border: '1px solid #aaf'
+  else
+    $('#result').css
+      border: '1px solid #faa'
+
   fragment = document.createDocumentFragment()
 
   $.each res.tokens, (i, data) ->

@@ -172,15 +172,57 @@ class ShikokuApp < Sinatra::Base
       collection = Shikoku::Database.collection('application/ruby/count_summary')
       res = { }
       collection.find(cond).each{ |entry|
-        p entry['token_class']
         max = entry['token_class'].each_pair.map{ |k, v|
           [k, v]
         }.sort_by{ |pair| pair[1]}.last[0]
-        p max
         res[entry['value']] = max
       }
       res
     end
+
+    def save_token_classes(tokens)
+      collection = Shikoku::Database.collection('application/ruby/count_summary')
+      tokens.each{ |v|
+        collection.update({ :value => v.content }, { :$inc => { :count => 1, :"token_class.#{v.token_class}" => 1}}, {:upsert => true})
+      }
+    end
+
+    def get_class_for_may_token(token)
+      # Da ta base  とかにしてしまう これではだめ
+      variations = (0..token.length).map{ |i| token[0..i] }
+
+      cond = {
+        "$or" => variations.map{ |v|
+          { 'value' => v}
+        }
+      }
+      p cond
+
+      collection = Shikoku::Database.collection('application/ruby/count_summary')
+      table = { }
+      collection.find(cond).each{ |entry|
+        table[entry['value']] = entry
+      }
+      found_key = variations.reverse.find{ |v|
+        table[v]
+      }
+      found = table[found_key]
+
+      return {
+        :value => token,
+        :token_class => 'nil',
+      } unless found
+
+      if found
+        token_class = found['token_class'].each_pair.map{ |k, v|
+          [k, v]
+        }.sort_by{ |pair| pair[1]}.last[0]
+        return {
+          :value => found['value'],
+          :token_class => token_class
+        }
+      end
+  end
 end
 
   get '/' do
@@ -213,20 +255,40 @@ end
     response['Access-Control-Allow-Headers'] = 'x-requested-with'
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
-    tokens = tokenizer.tokenize_as_string
+
     content_type :json
+
+    if tokenizer.is_valid
+      tokens = tokenizer.tokenize
+      save_token_classes(tokens)
+      res = { :tokens => [], :is_valid => tokenizer.is_valid }
+      tokens.each{ |token|
+        res[:tokens] << {
+          :value => token.content,
+          :token_class => token.token_class,
+        }
+      }
+      return JSON.unparse(res)
+    end
+
+    # -------------- コンパイル通らないときは適当に切って過去のを使う
+
+    res = { :tokens => [], :is_valid => false }
+
+    tokens = body.split(/\b|(\s+)/)
 
     counts = get_file_classes(tokens)
 
     res = { :tokens => [] }
     tokens.each{ |token|
-      token_class = counts[token] || 'nil'
+      token_class = counts[token] || '?'
       res[:tokens] << {
         :value => token,
         :token_class => token_class,
       }
     }
-    JSON.unparse(res)
+
+    return JSON.unparse(res)
   end
 
   post '/focus' do
