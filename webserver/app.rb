@@ -52,7 +52,8 @@ class ShikokuApp < Sinatra::Base
   post '/' do
     body = params[:body]
     halt 400 unless body
-    mime_type = params[:mime_type] || 'application/ruby'
+    mime_type = params[:mime_type]
+    halt 400 unless mime_type
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
 
