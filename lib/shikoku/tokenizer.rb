@@ -32,6 +32,15 @@ module Shikoku
     end
 
     def tokenize
+      return @_tokenize_result if @_tokenize_result
+      if self.respond_to? :_tokenize
+        @_tokenize_result = self._tokenize
+      else
+        []
+      end
+    rescue => error
+      warn error
+      @is_valid = false
       []
     end
 
@@ -42,46 +51,54 @@ module Shikoku
     end
 
     def is_valid
-      tokenize_as_string.join("").chomp == content.chomp
+      tokenize if @is_valid.nil?
+
+      if @is_valid.nil?
+        @is_valid = tokenize_as_string.join("").chomp == content.chomp
+      end
+
+      @is_valid
     end
 
     # --- tokenizers ---
 
     class Basic < self
-      def tokenize
+      def _tokenize
         content.split(/\b|(\s+)/m).map{ |value|
           Shikoku::Token.new_from_content_and_token_class(value, '?')
         }
-      rescue => error
-        warn error
-        []
       end
     end
 
     class ApplicationRuby < self
-      def tokenize
+      def _tokenize
         Ripper.lex(content).map{ |tupple|
           position, token_class, token = *tupple
           Shikoku::Token.new_from_content_and_token_class(token, token_class)
         }
-      rescue => error
-        warn error
-        []
       end
 
     end
 
     class ApplicationPython < self
-      def tokenize
+      def _tokenize
         script_path = File.join File.dirname(__FILE__), 'python_tokenizer.py'
-        list = JSON.parse `echo #{content} | python #{script_path}`
+
+        json_string = ""
+        io = IO.popen("python #{script_path}", "r+")
+        io.puts content
+        io.close_write
+        while line = io.gets do
+          json_string += line
+        end
+        pid, exit_status = Process.waitpid2 io.pid
+        raise "sub process died" if exit_status != 0
+        list = JSON.parse json_string
+        @is_valid = true
         list.map{ |tupple|
           token_class, token = *tupple
           Shikoku::Token.new_from_content_and_token_class(token, token_class)
         }
-      rescue => error
-        warn error
-        []
       end
 
     end
