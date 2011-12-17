@@ -13,7 +13,11 @@ class ShikokuApp < Sinatra::Base
       res
     end
 
-    def get_file_classes(tokens)
+    def collection_for_mime_type(mime_type)
+      Shikoku::Database.collection mime_type
+    end
+
+    def get_file_classes(tokens, mime_type)
       uniq_tokens = tokens.select{ |s| s =~ /\S/ }.uniq
       return { } if uniq_tokens.empty?
       cond = {
@@ -21,7 +25,7 @@ class ShikokuApp < Sinatra::Base
           { 'value' => token}
         }
       }
-      collection = Shikoku::Database.collection('application/ruby/count_summary')
+      collection = collection_for_mime_type mime_type
       res = { }
       collection.find(cond).each{ |entry|
         max = entry['token_class'].each_pair.map{ |k, v|
@@ -32,8 +36,8 @@ class ShikokuApp < Sinatra::Base
       res
     end
 
-    def save_token_classes(tokens)
-      collection = Shikoku::Database.collection('application/ruby/count_summary')
+    def save_token_classes(tokens, mime_type)
+      collection = collection_for_mime_type mime_type
       tokens.each{ |v|
         collection.update({ :value => v.content }, { :$inc => { :count => 1, :"token_class.#{v.token_class}" => 1}}, {:upsert => true})
       }
@@ -54,9 +58,11 @@ class ShikokuApp < Sinatra::Base
 
     content_type :json
 
+    # 字句解析できたときそのまま返す
+
     if tokenizer.is_valid
       tokens = tokenizer.tokenize
-      save_token_classes(tokens)
+      save_token_classes(tokens, mime_type)
       res = { :tokens => [], :is_valid => tokenizer.is_valid }
       tokens.each{ |token|
         res[:tokens] << {
@@ -67,13 +73,13 @@ class ShikokuApp < Sinatra::Base
       return JSON.unparse(res)
     end
 
-    # -------------- コンパイル通らないときは適当に切って過去のを使う
+    # 通らないときは適当に切って過去のを使う
 
     res = { :tokens => [], :is_valid => false }
 
     tokens = body.split(/(\s+)/).map{ |s| s.split(/\b/) }.flatten
 
-    counts = get_file_classes(tokens)
+    counts = get_file_classes(tokens, mime_type)
 
     res = { :tokens => [] }
     tokens.each{ |token|
