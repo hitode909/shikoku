@@ -94,6 +94,7 @@ module Shikoku
         pid, exit_status = Process.waitpid2 io.pid
         raise "sub process died" if exit_status != 0
         list = JSON.parse json_string
+        list = _fill_space(list)
         @is_valid = true
         list.map{ |tupple|
           token_class, token = *tupple
@@ -101,6 +102,28 @@ module Shikoku
         }
       end
 
+      # 空白ずれていくのでここで調整………
+      def _fill_space(list)
+        builded = ""
+        new_list = []
+        puts content
+        list.each{ |tupple|
+          token_class, token = *tupple
+
+          loop {
+            expected = content[builded.length]
+
+            if token.length == 0 || !expected || expected.length == 0 || builded.length == 0 || (builded + token) == content[0...(builded+token).length]
+              break
+            end
+            new_list << ['padding', expected]
+            builded += expected
+          }
+          new_list << tupple
+          builded += token
+        }
+        new_list
+      end
     end
 
     class ApplicationPerl < self
