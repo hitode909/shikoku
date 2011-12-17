@@ -106,7 +106,6 @@ module Shikoku
       def _fill_space(list)
         builded = ""
         new_list = []
-        puts content
         list.each{ |tupple|
           token_class, token = *tupple
 
