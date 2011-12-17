@@ -29,17 +29,20 @@ highlight = (res) ->
   highlight_histogram(res)
 
 $ ->
-  last = ''
+  last_body = ''
+  last_mime_type = ''
   last_res = null
 
   setInterval ->
     body = $('#source-code').val()
-    if last == body
+    mime_type = $('#mime-type').val()
+    if last_body == body and last_mime_type == mime_type
       return
-    last = body
+    last_body = body
+    last_mime_type = mime_type
     $.post '/'
       body: body
-      mime_type: 'application/ruby'
+      mime_type: mime_type
       (res) ->
         return if body != $('#source-code').val()
         last_res = res

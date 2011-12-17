@@ -37,19 +37,22 @@ highlight = function(res) {
   return highlight_histogram(res);
 };
 $(function() {
-  var last, last_res;
-  last = '';
+  var last_body, last_mime_type, last_res;
+  last_body = '';
+  last_mime_type = '';
   last_res = null;
   return setInterval(function() {
-    var body;
+    var body, mime_type;
     body = $('#source-code').val();
-    if (last === body) {
+    mime_type = $('#mime-type').val();
+    if (last_body === body && last_mime_type === mime_type) {
       return;
     }
-    last = body;
+    last_body = body;
+    last_mime_type = mime_type;
     return $.post('/', {
       body: body,
-      mime_type: 'application/ruby'
+      mime_type: mime_type
     }, function(res) {
       if (body !== $('#source-code').val()) {
         return;
