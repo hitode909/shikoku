@@ -23,7 +23,7 @@ module Shikoku
     end
 
     def self.class_for_mime_type(mime_type)
-      CLASSES[mime_type] || Null
+      CLASSES[mime_type] || Basic
     end
 
     # --- common methods ---
@@ -35,17 +35,23 @@ module Shikoku
       []
     end
 
+    def tokenize_as_string
+      tokenize.map{ |token|
+        token.content
+      }
+    end
+
+    def is_valid
+      tokenize_as_string.join("").chomp == content.chomp
+    end
+
     # --- tokenizers ---
 
     class Basic < self
       def tokenize
-        content.split(/\b|(\s+)/m)
-      end
-    end
-
-    class Null < self
-      def tokenize
-        super
+        content.split(/\b|(\s+)/m).map{ |value|
+          Shikoku::Token.new_from_content_and_token_class(value, '?')
+        }
       end
     end
 
@@ -57,24 +63,32 @@ module Shikoku
         }
       end
 
-      def tokenize_as_string
-        Ripper.tokenize(content, path)
+    end
+
+    class ApplicationPython < self
+      def tokenize
+        script_path = File.join File.dirname(__FILE__), 'python_tokenizer.py'
+        list = JSON.parse `echo #{content} | python #{script_path}`
+        list.map{ |tupple|
+          token_class, token = *tupple
+          Shikoku::Token.new_from_content_and_token_class(token, token_class)
+        }
       end
 
-      def is_valid
-        tokenize_as_string.join("") == content
-      end
     end
 
     class ApplicationPerl < self
       def tokenize
+        return []
+        # TODO...
         `echo  "#{content}" | perl -MPPI -l -e '$s=join(q{}, <STDIN>); for (@{PPI::Document->new(\\$s)->find(q{PPI::Token})}) { print $_ }'`.split(/\n+/)
       end
     end
 
     CLASSES = {
       "application/ruby" => ApplicationRuby,
-      "application/perl" => ApplicationPerl
+      "application/python" => ApplicationPython,
+      "application/perl" => ApplicationPerl,
     }
 
   end
