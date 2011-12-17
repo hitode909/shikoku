@@ -52,6 +52,9 @@ module Shikoku
         content.split(/\b|(\s+)/m).map{ |value|
           Shikoku::Token.new_from_content_and_token_class(value, '?')
         }
+      rescue => error
+        warn error
+        []
       end
     end
 
@@ -61,6 +64,9 @@ module Shikoku
           position, token_class, token = *tupple
           Shikoku::Token.new_from_content_and_token_class(token, token_class)
         }
+      rescue => error
+        warn error
+        []
       end
 
     end
@@ -73,6 +79,9 @@ module Shikoku
           token_class, token = *tupple
           Shikoku::Token.new_from_content_and_token_class(token, token_class)
         }
+      rescue => error
+        warn error
+        []
       end
 
     end
@@ -82,6 +91,9 @@ module Shikoku
         return []
         # TODO...
         `echo  "#{content}" | perl -MPPI -l -e '$s=join(q{}, <STDIN>); for (@{PPI::Document->new(\\$s)->find(q{PPI::Token})}) { print $_ }'`.split(/\n+/)
+      rescue => error
+        warn error
+        []
       end
     end
 

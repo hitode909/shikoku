@@ -13,4 +13,4 @@ for token_class, token_value, _, _, _ in generator:
 
 print json.dumps(result)
 
-# 標準入力読み込み，[ [token_class, token_value] ] をJSONで標準出力
+# read stdin, print [ [token_class, token_value] ] as JSON
