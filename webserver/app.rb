@@ -265,8 +265,6 @@ end
     if tokenizer.is_valid
       tokens = tokenizer.tokenize
       counts = get_file_counts(tokens.map(&:content))
-      require 'pp'
-      pp counts
       save_token_classes(tokens, mime_type)
       res = { :total => total, :tokens => [], :is_valid => tokenizer.is_valid }
       tokens.each{ |token|
