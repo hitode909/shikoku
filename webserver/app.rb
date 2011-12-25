@@ -23,6 +23,10 @@ class ShikokuApp < Sinatra::Base
       0
     end
 
+    def class_summary_collection(mime_type)
+      Shikoku::Database.collection(mime_type + "/class_summary")
+    end
+
     def token_collection
       Shikoku::Database.collection('application/ruby')
     end
@@ -133,7 +137,7 @@ class ShikokuApp < Sinatra::Base
           }
         }, {
           :fields => [:url, :path, :value]
-      }]
+        }]
       entries = token_collection.find(*query)
       entries.each{ |entry|
         value = entry['value']
@@ -226,8 +230,48 @@ class ShikokuApp < Sinatra::Base
           :token_class => token_class
         }
       end
-  end
-end
+    end
+
+    def _hue_table_for_mime_type(mime_type)
+      classes = class_summary_collection(mime_type).find.map{ |_|
+        _['token_class']
+      }
+      hash = { }
+
+      classes.each_with_index{ |_, i|
+        hash[_] = (i.to_f / classes.length * 360).to_i
+      }
+
+      hash
+    end
+
+    def hue_table_for_mime_type(mime_type)
+      # ややこしい
+      all = class_summary_collection(mime_type).find.to_a
+      count_sum = all.map{ |_| _['count']}.inject{ |a, b| a + b }
+
+      hue_hash = { }
+      hue_sum = 0
+
+      all.sort_by{ |_| _['count']}.reverse.each{ |_|
+        key = _['token_class']
+        count = _['count']
+        hue_hash[key] = (hue_sum * 360).to_i
+        hue_sum += count / count_sum.to_f
+      }
+      hue_hash
+    end
+
+    def get_color(hue_table, token_class, rate)
+      h = hue_table[token_class]
+      s = 50
+      l = (0.5 - rate * rate) * 100
+      l = 60 if rate == 0.0
+      l = 0 if l < 0
+
+      "hsl(#{h}, #{s}%, #{l}%)"
+    end
+  end                           # helpers end
 
   get '/' do
     @files_count  = Shikoku::Database.collection('application/ruby/files').count
@@ -258,6 +302,8 @@ end
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
     total = get_file_total
 
+    hue_table = hue_table_for_mime_type(mime_type)
+
     content_type :json
 
     # 字句解析できたときそのまま返す
@@ -269,11 +315,14 @@ end
       res = { :total => total, :tokens => [], :is_valid => tokenizer.is_valid }
       tokens.each{ |token|
         count = counts[token.content] || 0
+        rate = count.to_f / total
+
         res[:tokens] << {
           :value => token.content,
           :count => count,
-          :rate => count.to_f / total,
+          :rate => rate,
           :token_class => token.token_class,
+          :color => get_color(hue_table, token.token_class, rate)
         }
       }
       return JSON.unparse(res)

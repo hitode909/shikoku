@@ -20,7 +20,8 @@ get_color_from_token_class_and_rate = (token_class, rate) ->
 
 create_token = (def) ->
   $('<span>').addClass('token').text(def.value).attr(title: "#{def.token_class} #{def.count} #{Math.floor(def.rate*100)}%").css
-      color: get_color_from_token_class_and_rate(def.token_class, def.rate)
+      color: def.color
+        # color: get_color_from_token_class_and_rate(def.token_class, def.rate)
 
 highlight = (res) ->
   if res.is_valid
