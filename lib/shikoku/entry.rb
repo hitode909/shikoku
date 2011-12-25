@@ -79,6 +79,17 @@ module Shikoku
         class_summary_db.update({ :token_class => v.token_class }, { :$inc => { :count => 1}}, {:upsert => true})
       }
 
+      list.map(&:content).uniq.each{ |v|
+        file_summary_db.update({ :value => v}, { :$inc => { :count => 1}}, {:upsert => true})
+
+        key = {
+          :value => v,
+          :url   => repository.remote_url,
+          :path  => path,
+        }
+        file_token_db.update(key, key, {:upsert => true})
+      }
+
       files_db.insert(as_key)
     end
 

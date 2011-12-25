@@ -6,9 +6,21 @@ get_color_from_token_class = (token_class) ->
 
   "hsl(#{ h }, 50%, 50%)"
 
+get_color_from_token_class_and_rate = (token_class, rate) ->
+  sum = 0
+  for i in [0..token_class.length-1]
+    sum += token_class.charCodeAt(i) * i
+  h = sum % 31 * 11
+  s = 50
+  l = (0.5 - rate * rate) * 100
+  l = 60 if rate == 0.0
+  l = 0 if l < 0
+
+  "hsl(#{ h }, #{ s }%, #{ l }%)"
+
 create_token = (def) ->
-  $('<span>').addClass('token').text(def.value).attr(title: def.token_class).css
-      color: get_color_from_token_class(def.token_class)
+  $('<span>').addClass('token').text(def.value).attr(title: "#{def.token_class} #{def.count} #{Math.floor(def.rate*100)}%").css
+      color: get_color_from_token_class_and_rate(def.token_class, def.rate)
 
 highlight = (res) ->
   if res.is_valid

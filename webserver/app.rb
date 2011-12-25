@@ -230,6 +230,7 @@ class ShikokuApp < Sinatra::Base
 end
 
   get '/' do
+    @files_count  = Shikoku::Database.collection('application/ruby/files').count
     erb :index
   end
 
@@ -255,6 +256,7 @@ end
     halt 400 unless mime_type
     collection = Shikoku::Database.collection(mime_type)
     tokenizer = Shikoku::Tokenizer.new_from_content_and_mime_type(body, mime_type)
+    total = get_file_total
 
     content_type :json
 
@@ -262,11 +264,17 @@ end
 
     if tokenizer.is_valid
       tokens = tokenizer.tokenize
+      counts = get_file_counts(tokens.map(&:content))
+      require 'pp'
+      pp counts
       save_token_classes(tokens, mime_type)
-      res = { :tokens => [], :is_valid => tokenizer.is_valid }
+      res = { :total => total, :tokens => [], :is_valid => tokenizer.is_valid }
       tokens.each{ |token|
+        count = counts[token.content] || 0
         res[:tokens] << {
           :value => token.content,
+          :count => count,
+          :rate => count.to_f / total,
           :token_class => token.token_class,
         }
       }
@@ -298,6 +306,7 @@ end
     focus = params[:focus]
     halt 400 unless body
     halt 400 unless focus
+    total = get_file_total
     mime_type = params[:mime_type] || 'application/ruby'
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'x-requested-with'
