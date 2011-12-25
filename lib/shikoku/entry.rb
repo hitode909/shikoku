@@ -59,6 +59,10 @@ module Shikoku
       Shikoku::Database.collection(mime_type + "/count_summary")
     end
 
+    def class_summary_db
+      Shikoku::Database.collection(mime_type + "/class_summary")
+    end
+
     # どのファイルにでるか
     def file_token_db
       Shikoku::Database.collection(mime_type + "/file_token")
@@ -72,6 +76,7 @@ module Shikoku
 
       list.each{ |v|
         count_summary_db.update({ :value => v.content }, { :$inc => { :count => 1, :"token_class.#{v.token_class}" => 1}}, {:upsert => true})
+        class_summary_db.update({ :token_class => v.token_class }, { :$inc => { :count => 1}}, {:upsert => true})
       }
 
       files_db.insert(as_key)

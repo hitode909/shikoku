@@ -62,6 +62,9 @@ module Shikoku
 
     # --- tokenizers ---
 
+    class Null < self
+    end
+
     class Basic < self
       def _tokenize
         content.split(/\b|(\s+)/m).map{ |value|
