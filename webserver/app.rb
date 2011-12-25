@@ -263,7 +263,7 @@ class ShikokuApp < Sinatra::Base
     end
 
     def get_color(hue_table, token_class, rate)
-      h = hue_table[token_class]
+      h = hue_table[token_class] || 0
       s = 50
       l = (0.5 - rate * rate) * 100
       l = 60 if rate == 0.0
@@ -334,14 +334,20 @@ class ShikokuApp < Sinatra::Base
 
     tokens = body.split(/(\s+)/).map{ |s| s.split(/\b/) }.flatten
 
-    counts = get_file_classes(tokens, mime_type)
+    classes = get_file_classes(tokens, mime_type)
+    counts = get_file_counts(tokens)
 
     res = { :tokens => [] }
     tokens.each{ |token|
-      token_class = counts[token] || '?'
+      count = counts[token] || 0
+      rate = count.to_f / total
+      token_class = classes[token] || '?'
       res[:tokens] << {
         :value => token,
+        :count => count,
+        :rate => rate,
         :token_class => token_class,
+        :color => get_color(hue_table, token_class, rate)
       }
     }
 
