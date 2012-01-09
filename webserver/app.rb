@@ -314,7 +314,7 @@ class ShikokuApp < Sinatra::Base
       tokens = tokenizer.tokenize
       counts = get_file_counts(tokens.map(&:content))
       save_token_classes(tokens, mime_type)
-      res = { :total => total, :tokens => [], :is_valid => tokenizer.is_valid }
+      res = { :tokens => [], :is_valid => tokenizer.is_valid }
       tokens.each{ |token|
         count = counts[token.content] || 0
         rate = count.to_f / total
