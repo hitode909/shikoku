@@ -253,11 +253,13 @@ class ShikokuApp < Sinatra::Base
       hue_hash = { }
       hue_sum = 0
 
+      tf = 1.0
       all.sort_by{ |_| _['count']}.reverse.each{ |_|
         key = _['token_class']
         count = _['count']
-        hue_hash[key] = (hue_sum * 360).to_i
+        hue_hash[key] = (hue_sum * 180 * tf).to_i % 360
         hue_sum += count / count_sum.to_f
+        tf *= -1
       }
       hue_hash
     end
@@ -265,9 +267,9 @@ class ShikokuApp < Sinatra::Base
     def get_color(hue_table, token_class, rate)
       h = hue_table[token_class] || 0
       s = 50
-      l = (0.5 - rate * rate) * 100
-      l = 60 if rate == 0.0
-      l = 0 if l < 0
+      l = (0.6 - rate) * 100
+      l = 70 if rate < 0.01
+      l = 25 if l < 25
 
       "hsl(#{h}, #{s}%, #{l}%)"
     end
