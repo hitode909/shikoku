@@ -12,11 +12,14 @@ module Shikoku
     end
 
     def is_separator?
-      ! self.content =~ /\S/
+      not self.content =~ /\S/
     end
 
     def to_s
-      "#{self.content} (#{self.token_class})"
+      {
+        :value => self.content,
+        :class => self.token_class,
+      }.to_s
     end
 
   end
