@@ -273,11 +273,10 @@ class ShikokuApp < Sinatra::Base
     end
 
     def get_color(hue_table, token_class, rate)
-      h = hue_table[token_class] || 0
+      h = (hue_table[token_class] || 0).to_i
       s = 50
-      l = (0.6 - rate) * 100
-      l = 70 if rate < 0.01
-      l = 25 if l < 25
+      l = [(0.6 - rate) * 100, 0].max.to_i
+      l = 70 if rate == 0.0
 
       "hsl(#{h}, #{s}%, #{l}%)"
     end
