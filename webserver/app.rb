@@ -27,6 +27,14 @@ class ShikokuApp < Sinatra::Base
       Shikoku::Database.collection(mime_type + "/class_summary")
     end
 
+    def count_summary_collection_for_mime_type(mime_type)
+      Shikoku::Database.collection(mime_type + "/count_summary")
+    end
+
+    def file_summary_collection(mime_type)
+      Shikoku::Database.collection(mime_type + "/file_summary")
+    end
+
     def token_collection
       Shikoku::Database.collection('application/ruby')
     end
@@ -67,8 +75,8 @@ class ShikokuApp < Sinatra::Base
     end
 
     # サマリーから引く
-    def get_file_set_hash_from_tokens(tokens)
-      file_counts = get_file_counts(tokens)
+    def get_file_set_hash_from_tokens(tokens, mime_type)
+      file_counts = get_file_counts(tokens, mime_type)
 
       cond = {
         "$or" => tokens.uniq.select{ |s| s =~ /\S/ && file_counts[s]}.map{ |token|
@@ -153,7 +161,7 @@ class ShikokuApp < Sinatra::Base
       (set_a & set_b).length.to_f / (set_a + set_b).length.to_f
     end
 
-    def get_file_counts(tokens)
+    def get_file_counts(tokens, mime_type)
       uniq_tokens = tokens.select{ |s| s =~ /\S/ }.uniq
       return { } if uniq_tokens.empty?
       cond = {
@@ -161,7 +169,7 @@ class ShikokuApp < Sinatra::Base
           { 'value' => token}
         }
       }
-      collection = Shikoku::Database.collection('application/ruby/file_summary')
+      collection = file_summary_collection(mime_type)
       res = { }
       collection.find(cond).each{ |entry|
         res[entry['value']] = entry['count']
@@ -177,7 +185,7 @@ class ShikokuApp < Sinatra::Base
           { 'value' => token}
         }
       }
-      collection = collection_for_mime_type mime_type
+      collection = count_summary_collection_for_mime_type mime_type
       res = { }
       collection.find(cond).each{ |entry|
         max = entry['token_class'].each_pair.map{ |k, v|
@@ -189,7 +197,7 @@ class ShikokuApp < Sinatra::Base
     end
 
     def save_token_classes(tokens, mime_type)
-      collection = collection_for_mime_type mime_type
+      collection = count_summary_collection_for_mime_type mime_type
       tokens.each{ |v|
         collection.update({ :value => v.content }, { :$inc => { :count => 1, :"token_class.#{v.token_class}" => 1}}, {:upsert => true})
       }
@@ -312,7 +320,7 @@ class ShikokuApp < Sinatra::Base
 
     if tokenizer.is_valid
       tokens = tokenizer.tokenize
-      counts = get_file_counts(tokens.map(&:content))
+      counts = get_file_counts(tokens.map(&:content), mime_type)
       save_token_classes(tokens, mime_type)
       res = { :tokens => [], :is_valid => tokenizer.is_valid }
       tokens.each{ |token|
@@ -334,10 +342,10 @@ class ShikokuApp < Sinatra::Base
 
     res = { :tokens => [], :is_valid => false }
 
-    tokens = body.split(/(\s+)/).map{ |s| s.split(/\b/) }.flatten
+    tokens = body.split(/(\s+)|\b/)
 
     classes = get_file_classes(tokens, mime_type)
-    counts = get_file_counts(tokens)
+    counts = get_file_counts(tokens, mime_type)
 
     res = { :tokens => [] }
     tokens.each{ |token|
@@ -372,7 +380,7 @@ class ShikokuApp < Sinatra::Base
     content_type :json
 
     res_cache = { }
-    set_cache = get_file_set_hash_from_tokens(tokens)
+    set_cache = get_file_set_hash_from_tokens(tokens, mime_type)
     res = { :focus => focus, :tokens => []}
     focus_set = set_cache[focus]
     tokens.each{ |token|
