@@ -2,6 +2,7 @@
 require 'digest/sha1'
 require 'grit'
 require 'ripper'
+require 'json'
 
 module Shikoku
   class Tokenizer
