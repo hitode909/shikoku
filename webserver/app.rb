@@ -265,7 +265,7 @@ class ShikokuApp < Sinatra::Base
       all.sort_by{ |_| _['count']}.reverse.each{ |_|
         key = _['token_class']
         count = _['count']
-        hue_hash[key] = (hue_sum * 180 * tf).to_i % 360
+        hue_hash[key] = (180+(hue_sum * 180 * tf).to_i) % 360
         hue_sum += count / count_sum.to_f
         tf *= -1
       }
