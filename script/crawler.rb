@@ -12,7 +12,9 @@ $:.unshift(File.dirname(self_file) + "/../lib")
 require 'bundler/setup'
 require 'shikoku'
 
-Shikoku::GithubCrawler.each{ |git_url|
+lang = ARGV.first || 'Ruby'
+
+Shikoku::GithubCrawler.each(lang){ |git_url|
   puts git_url
   repos = Shikoku::Repository.new_from_remote git_url
   begin
@@ -21,6 +23,7 @@ Shikoku::GithubCrawler.each{ |git_url|
       begin
         next if entry.kind_of? Grit::Submodule
         next if entry.tokenizer.kind_of? Shikoku::Tokenizer::Null
+        next if entry.tokenizer.kind_of? Shikoku::Tokenizer::Basic
         p [repos.local_path, entry.path, entry.mime_type]
         entry.save_tokens
       rescue => error

@@ -6,6 +6,7 @@ module Shikoku
   class GithubCrawler
 
     def self.each(lang = 'Ruby')
+      warn "lang: #{lang}"
       (0..(1/0.0)).each{ |page|
         doc = Nokogiri open("https://github.com/languages/#{lang}/most_watched?page=#{page}")
         doc.search('.title').each{ |line|
