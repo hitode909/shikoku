@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'json'
 require 'set'
+require 'colormath'
 
 class ShikokuApp < Sinatra::Base
 
@@ -274,11 +275,11 @@ class ShikokuApp < Sinatra::Base
 
     def get_color(hue_table, token_class, rate)
       h = (hue_table[token_class] || 0).to_i
-      s = 50
-      l = [(0.6 - rate) * 100, 0].max.to_i
-      l = 70 if rate == 0.0
+      s = 0.5
+      l = [0.6 - rate, 0].max
+      l = 0.7 if rate == 0.0
 
-      "hsl(#{h}, #{s}%, #{l}%)"
+      ColorMath::HSL.new(h, s, l).hex
     end
   end                           # helpers end
 
