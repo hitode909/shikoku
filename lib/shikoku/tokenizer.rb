@@ -130,10 +130,25 @@ module Shikoku
     end
 
     class ApplicationPerl < self
-      def tokenize
-        return []
-        # TODO...
-        `echo  "#{content}" | perl -MPPI -l -e '$s=join(q{}, <STDIN>); for (@{PPI::Document->new(\\$s)->find(q{PPI::Token})}) { print $_ }'`.split(/\n+/)
+      def _tokenize
+        script_path = File.join File.dirname(__FILE__), 'perl_tokenizer.pl'
+
+        json_string = ""
+        io = IO.popen("perl #{script_path}", "r+")
+        io.puts content
+        io.close_write
+        while line = io.gets do
+          json_string += line
+        end
+        pid, exit_status = Process.waitpid2 io.pid
+        raise "sub process died" if exit_status != 0
+        list = JSON.parse json_string
+        @is_valid = true
+        list.map{ |tupple|
+          token_class, token = *tupple
+          Shikoku::Token.new_from_content_and_token_class(token, token_class)
+        }
+
       rescue => error
         warn error
         []

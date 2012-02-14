@@ -170,9 +170,10 @@ module Shikoku
 
     def mime_type
       return @mime_type if @mime_type
-      # XXX
-      if blob.kind_of? Grit::Submodule
+      if blob.kind_of? Grit::Submodule # XXX
         @mime_type = "git/submodule"
+      elsif path =~ /\.pm$/
+        @mime_type = "application/perl"
       else
         @mime_type = blob.mime_type
       end
